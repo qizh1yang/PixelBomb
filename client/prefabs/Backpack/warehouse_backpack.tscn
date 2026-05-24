@@ -1,0 +1,224 @@
+[gd_scene load_steps=8 format=3 uid="uid://cb5c0353cly0y"]
+
+[ext_resource type="Script" path="res://prefabs/Backpack/warehouse_backpack.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg_panel"]
+bg_color = Color(0.05, 0.08, 0.12, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.3, 0.5, 0.8)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_special"]
+bg_color = Color(0.12, 0.12, 0.18, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.72, 0.53, 0.04, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_normal"]
+bg_color = Color(0.0980392, 0.14902, 0.270588, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_selected"]
+bg_color = Color(0.831373, 0.686275, 0.215686, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ghost"]
+bg_color = Color(0.831373, 0.686275, 0.215686, 0.2)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.831373, 0.686275, 0.215686, 0.6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_invalid"]
+bg_color = Color(0.898039, 0.223529, 0.207843, 0.2)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.898039, 0.223529, 0.207843, 0.6)
+
+[node name="Backpack" type="Control"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -390.0
+offset_right = 320.0
+offset_bottom = 390.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_script")
+
+[node name="BgPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg_panel")
+
+[node name="Margin" type="MarginContainer" parent="BgPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="VBox" type="VBoxContainer" parent="BgPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleBar" type="HBoxContainer" parent="BgPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="MainTitle" type="Label" parent="BgPanel/Margin/VBox/TitleBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 1)
+theme_override_font_sizes/font_size = 24
+text = "主背包"
+
+[node name="HSpacer" type="Control" parent="BgPanel/Margin/VBox/TitleBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MainGridCap" type="Label" parent="BgPanel/Margin/VBox/TitleBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "0/48"
+
+[node name="ContentArea" type="HBoxContainer" parent="BgPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 32
+alignment = 1
+
+[node name="MainBackpack" type="MarginContainer" parent="BgPanel/Margin/VBox/ContentArea"]
+layout_mode = 2
+
+[node name="GridWrapper" type="Control" parent="BgPanel/Margin/VBox/ContentArea/MainBackpack"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(424, 568)
+layout_mode = 2
+
+[node name="Cells" type="Control" parent="BgPanel/Margin/VBox/ContentArea/MainBackpack/GridWrapper"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Items" type="Control" parent="BgPanel/Margin/VBox/ContentArea/MainBackpack/GridWrapper"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Divider" type="ColorRect" parent="BgPanel/Margin/VBox/ContentArea"]
+custom_minimum_size = Vector2(2, 0)
+layout_mode = 2
+color = Color(0.2, 0.2, 0.27, 1)
+
+[node name="SpecialArea" type="MarginContainer" parent="BgPanel/Margin/VBox/ContentArea"]
+layout_mode = 2
+
+[node name="SpecialVBox" type="VBoxContainer" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Spacer" type="Control" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SpecialTitle" type="Label" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 20
+text = "保险箱"
+horizontal_alignment = 1
+
+[node name="SpecialPanel" type="Panel" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(136, 136)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_special")
+
+[node name="SpecialCells" type="Control" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox/SpecialPanel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SpecialItems" type="Control" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox/SpecialPanel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SpecialGridCap" type="Label" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 14
+text = "0/4"
+horizontal_alignment = 1
+
+[node name="Spacer2" type="Control" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+
+
+[node name="GhostPreview" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

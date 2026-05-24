@@ -1,0 +1,35 @@
+[gd_scene load_steps=7 format=3 uid="uid://ll2r7gvgi363"]
+
+[ext_resource type="Script" uid="uid://c1lvslyyr78yu" path="res://prefabs/Bombs/bomb.gd" id="1_6vivf"]
+[ext_resource type="Texture2D" uid="uid://b5xgihxmxf6i1" path="res://prefabs/Bombs/res/Bomb.png" id="1_qar26"]
+[ext_resource type="Shader" uid="uid://cal1wjdloof7" path="res://prefabs/Bombs/bomb.gdshader" id="3_dafpj"]
+[ext_resource type="Script" uid="uid://b2sntms0bngww" path="res://prefabs/Bombs/flash.gd" id="5_84c75"]
+[ext_resource type="PackedScene" uid="uid://dxkrb80oqxrox" path="res://prefabs/Bombs/explosion_effect.tscn" id="6_eff"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_84c75"]
+shader = ExtResource("3_dafpj")
+shader_parameter/percent = 0.5000000074506
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_qar26"]
+radius = 6.0
+
+[node name="Bomb" type="StaticBody2D"]
+position = Vector2(49, 35)
+script = ExtResource("1_6vivf")
+explosionEffectScene = ExtResource("6_eff")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_84c75")
+texture = ExtResource("1_qar26")
+
+[node name="Flash" type="Node" parent="Sprite2D"]
+script = ExtResource("5_84c75")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_qar26")
+
+[node name="FuseTimer" type="Timer" parent="."]
+wait_time = 3.0
+
+[node name="FlashTimer" type="Timer" parent="."]
+wait_time = 0.5

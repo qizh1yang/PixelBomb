@@ -1,0 +1,141 @@
+[gd_scene load_steps=3 format=3 uid="uid://hudc123"]
+
+[ext_resource type="Script" uid="uid://bb8yj1mbnjtx2" path="res://prefabs/HUD/hud.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_top_bar"]
+bg_color = Color(0, 0, 0, 0.5)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 20
+content_margin_top = 6
+content_margin_right = 20
+content_margin_bottom = 6
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="RootHBox" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="LeftPanel" type="VBoxContainer" parent="MarginContainer/RootHBox"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="PlayerStatusList" type="VBoxContainer" parent="MarginContainer/RootHBox/LeftPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="CenterPanel" type="VBoxContainer" parent="MarginContainer/RootHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_constants/separation = 6
+
+[node name="TopCenter" type="PanelContainer" parent="MarginContainer/RootHBox/CenterPanel"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_top_bar")
+
+[node name="TopCenterVBox" type="VBoxContainer" parent="MarginContainer/RootHBox/CenterPanel/TopCenter"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="TimeLabel" type="Label" parent="MarginContainer/RootHBox/CenterPanel/TopCenter/TopCenterVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 32
+text = "05:00"
+horizontal_alignment = 1
+
+[node name="SurvivalLabel" type="Label" parent="MarginContainer/RootHBox/CenterPanel/TopCenter/TopCenterVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.9, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 18
+text = "存活: 1"
+horizontal_alignment = 1
+
+[node name="NotificationLabel" type="Label" parent="MarginContainer/RootHBox/CenterPanel/TopCenter/TopCenterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RightPanel" type="VBoxContainer" parent="MarginContainer/RootHBox"]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+theme_override_constants/separation = 8
+
+[node name="BottomRight" type="Control" parent="MarginContainer/RootHBox/RightPanel"]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+
+[node name="BackpackBtn" type="Button" parent="MarginContainer/RootHBox/RightPanel/BottomRight"]
+layout_mode = 1
+parent_class = ""
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -119.0
+offset_top = 4.0
+offset_right = -19.0
+offset_bottom = 64.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "背包 [B]"
+
+[node name="CountdownLabel" type="Label" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+...
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+...
+offset_right = 100.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(100, 50)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 120
+text = "3"
+horizontal_alignment = 1
+vertical_alignment = 1

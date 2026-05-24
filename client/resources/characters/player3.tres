@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CharacterResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/characters/character_base.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+character_id = "player3"
+char_index = 2
+display_name = "重装·破壁者"
+description = "初始自带护盾，但行动较为缓慢。"
+base_speed = 75.0
+base_bomb_cap = 1
+base_radius = 1
+base_shield_count = 0
+max_speed = 95.0
+max_bomb_cap = 2
+max_radius = 1
+max_shield_count = 1
+special_ability = ""
+ability_description = ""

@@ -1,0 +1,502 @@
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://scenes/Room/room.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.0392157, 0.0392157, 0.0784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar"]
+bg_color = Color(0, 0, 0, 0.4)
+border_width_bottom = 2
+border_color = Color(0.96, 0.65, 0.14, 0.2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_leave_normal"]
+bg_color = Color(0.2, 0.05, 0.05, 0.2)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.2, 0.2, 0.4)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_leave_hover"]
+bg_color = Color(0.25, 0.05, 0.05, 0.4)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.2, 0.2, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0.8, 0.2, 0.2, 0.1)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.05, 0.08, 0.16, 0.6)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.6, 0.9, 0.2)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_preview_panel"]
+bg_color = Color(0.05, 0.08, 0.16, 0.3)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.6, 0.9, 0.1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_invite_normal"]
+bg_color = Color(0.08, 0.15, 0.25, 0.3)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.65, 0.95, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_invite_hover"]
+bg_color = Color(0.08, 0.15, 0.25, 0.5)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.65, 0.95, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.35, 0.65, 0.95, 0.2)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_solo_normal"]
+bg_color = Color(0.2, 0.08, 0.08, 0.3)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9, 0.3, 0.3, 0.4)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_solo_hover"]
+bg_color = Color(0.2, 0.08, 0.08, 0.5)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9, 0.3, 0.3, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.9, 0.3, 0.3, 0.15)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_action_normal"]
+bg_color = Color(0.96, 0.65, 0.14, 0.12)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.96, 0.65, 0.14, 0.7)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_action_hover"]
+bg_color = Color(0.96, 0.65, 0.14, 0.22)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.96, 0.65, 0.14, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.96, 0.65, 0.14, 0.3)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_action_pressed"]
+bg_color = Color(0.96, 0.65, 0.14, 0.35)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.96, 0.65, 0.14, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_action_disabled"]
+bg_color = Color(0.15, 0.15, 0.15, 0.3)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.35, 0.35, 0.3)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toast"]
+bg_color = Color(0.04, 0.06, 0.12, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.6, 0.9, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.35, 0.6, 0.9, 0.2)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar_btn"]
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.65, 0.95, 0.3)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="Room" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="MainVBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="TopBar" type="PanelContainer" parent="MainVBox"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_topbar")
+
+[node name="Margin" type="MarginContainer" parent="MainVBox/TopBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 156
+theme_override_constants/margin_right = 156
+
+[node name="HBox" type="HBoxContainer" parent="MainVBox/TopBar/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="RoomCodeContainer" type="HBoxContainer" parent="MainVBox/TopBar/Margin/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RoomCode" type="Label" parent="MainVBox/TopBar/Margin/HBox/RoomCodeContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.65098, 0.137255, 1)
+theme_override_font_sizes/font_size = 28
+text = "出发准备室 #0000"
+
+[node name="CopyCodeBtn" type="Button" parent="MainVBox/TopBar/Margin/HBox/RoomCodeContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.35, 0.65, 0.95, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_topbar_btn")
+text = "复制房间码"
+
+[node name="Spacer" type="Control" parent="MainVBox/TopBar/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CurrentPlayerName" type="Label" parent="MainVBox/TopBar/Margin/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.65, 1)
+theme_override_font_sizes/font_size = 16
+text = "PlayerName"
+
+[node name="Control" type="Control" parent="MainVBox/TopBar/Margin/HBox"]
+custom_minimum_size = Vector2(8, 0)
+layout_mode = 2
+
+[node name="LeaveBtn" type="Button" parent="MainVBox/TopBar/Margin/HBox"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.9, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_leave_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_leave_hover")
+text = "离开房间"
+
+[node name="Body" type="MarginContainer" parent="MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 156
+theme_override_constants/margin_top = 80
+theme_override_constants/margin_right = 156
+theme_override_constants/margin_bottom = 80
+
+[node name="HBox" type="HBoxContainer" parent="MainVBox/Body"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="LeftCol" type="VBoxContainer" parent="MainVBox/Body/HBox"]
+custom_minimum_size = Vector2(384, 0)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Title" type="Label" parent="MainVBox/Body/HBox/LeftCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.941176, 1)
+theme_override_font_sizes/font_size = 20
+text = "选择角色"
+
+[node name="Spacer" type="Control" parent="MainVBox/Body/HBox/LeftCol"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+
+[node name="CharList" type="VBoxContainer" parent="MainVBox/Body/HBox/LeftCol"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="MidCol" type="VBoxContainer" parent="MainVBox/Body/HBox"]
+custom_minimum_size = Vector2(648, 0)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HeaderHBox" type="HBoxContainer" parent="MainVBox/Body/HBox/MidCol"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="MainVBox/Body/HBox/MidCol/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.941176, 1)
+theme_override_font_sizes/font_size = 20
+text = "破壁者小队"
+
+[node name="Spacer" type="Control" parent="MainVBox/Body/HBox/MidCol/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RoomCodeRight" type="Label" parent="MainVBox/Body/HBox/MidCol/HeaderHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.65, 1)
+theme_override_font_sizes/font_size = 14
+text = "队伍 ID: #Room_9321"
+
+[node name="Spacer2" type="Control" parent="MainVBox/Body/HBox/MidCol"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+
+[node name="PlayerList" type="VBoxContainer" parent="MainVBox/Body/HBox/MidCol"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Spacer3" type="Control" parent="MainVBox/Body/HBox/MidCol"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+
+[node name="StatusHint" type="Label" parent="MainVBox/Body/HBox/MidCol"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.4)
+theme_override_font_sizes/font_size = 16
+text = "等待队友加入..."
+horizontal_alignment = 1
+
+[node name="RightCol" type="VBoxContainer" parent="MainVBox/Body/HBox"]
+custom_minimum_size = Vector2(528, 0)
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="MissionPanel" type="PanelContainer" parent="MainVBox/Body/HBox/RightCol"]
+custom_minimum_size = Vector2(0, 280)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="MainVBox/Body/HBox/RightCol/MissionPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="MissionInfo" type="VBoxContainer" parent="MainVBox/Body/HBox/RightCol/MissionPanel/Margin"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="MainVBox/Body/HBox/RightCol/MissionPanel/Margin/MissionInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.878431, 0.878431, 0.941176, 1)
+theme_override_font_sizes/font_size = 20
+text = "任务简报"
+
+[node name="Spacer" type="Control" parent="MainVBox/Body/HBox/RightCol/MissionPanel/Margin/MissionInfo"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
+[node name="Target" type="Label" parent="MainVBox/Body/HBox/RightCol/MissionPanel/Margin/MissionInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+theme_override_font_sizes/font_size = 16
+text = "目标空岛：碎空岛 (经典)"
+
+[node name="Capacity" type="Label" parent="MainVBox/Body/HBox/RightCol/MissionPanel/Margin/MissionInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+theme_override_font_sizes/font_size = 16
+text = "小队容量：1 / 4 人"
+
+[node name="Difficulty" type="Label" parent="MainVBox/Body/HBox/RightCol/MissionPanel/Margin/MissionInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+theme_override_font_sizes/font_size = 16
+text = "任务难度：★★★☆☆ (中等)"
+
+[node name="Duration" type="Label" parent="MainVBox/Body/HBox/RightCol/MissionPanel/Margin/MissionInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+theme_override_font_sizes/font_size = 16
+text = "预计时长：15 分钟"
+
+[node name="Rules" type="Label" parent="MainVBox/Body/HBox/RightCol/MissionPanel/Margin/MissionInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.65, 1)
+theme_override_font_sizes/font_size = 16
+text = "特殊规则：重力减弱，爆炸范围+20%"
+
+[node name="CharPreviewPanel" type="PanelContainer" parent="MainVBox/Body/HBox/RightCol"]
+custom_minimum_size = Vector2(0, 240)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_preview_panel")
+
+[node name="CharPreview" type="TextureRect" parent="MainVBox/Body/HBox/RightCol/CharPreviewPanel"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.7)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ActionArea" type="VBoxContainer" parent="MainVBox/Body/HBox/RightCol"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+alignment = 2
+
+[node name="InviteBtn" type="Button" parent="MainVBox/Body/HBox/RightCol/ActionArea"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.65, 0.95, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_invite_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_invite_hover")
+text = "邀请好友"
+
+[node name="SoloTestBtn" type="Button" parent="MainVBox/Body/HBox/RightCol/ActionArea"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_solo_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_solo_hover")
+text = "单人测试"
+
+[node name="ActionBtn" type="Button" parent="MainVBox/Body/HBox/RightCol/ActionArea"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_action_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_action_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_action_pressed")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_action_disabled")
+text = "开始出发"
+
+[node name="ToastPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+modulate = Color(1, 1, 1, 0)
+custom_minimum_size = Vector2(400, 64)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -32.0
+offset_right = 200.0
+offset_bottom = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_toast")
+
+[node name="Center" type="CenterContainer" parent="ToastPanel"]
+layout_mode = 2
+
+[node name="ToastLabel" type="Label" parent="ToastPanel/Center"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.65, 0.95, 1)
+theme_override_font_sizes/font_size = 18
+text = "已复制房间码！快去邀请队友吧！"
+
+[connection signal="pressed" from="MainVBox/TopBar/Margin/HBox/LeaveBtn" to="." method="_on_leave_pressed"]
+[connection signal="pressed" from="MainVBox/Body/HBox/RightCol/ActionArea/SoloTestBtn" to="." method="_on_solo_test_pressed"]
+[connection signal="pressed" from="MainVBox/Body/HBox/RightCol/ActionArea/ActionBtn" to="." method="_on_action_pressed"]

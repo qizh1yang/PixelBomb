@@ -1,0 +1,18 @@
+path = 'D:/ALL_code/Godot/PixelBomb/.workbuddy/memory/2026-05-06.md'
+with open(path, 'a', encoding='utf-8') as f:
+    f.write('\n\n## GameMode 单例拆分（第六次）\n\n')
+    f.write('### 新建文件\n')
+    f.write('- autoloads/game_mode.gd - Global game state machine Autoload\n')
+    f.write('  - enum Stage { LOBBY, PLAYING, SETTLEMENT }\n')
+    f.write('  - signals: game_started, player_died, game_ended, map_generated\n')
+    f.write('  - players dict, spawn/sync, settlement, network msg handler, camera/HUD follow, tick()\n\n')
+    f.write('### 重写 map_classic.gd\n')
+    f.write('- 精简为 ~55 行，只保留地图生成和信号通知\n')
+    f.write('- _ready: GameMode.setup_game(self) -> 生成地图 -> GameMode.on_map_generated()\n')
+    f.write('- _process: 委托 GameMode.tick(delta)\n\n')
+    f.write('### project.godot 变更\n')
+    f.write('- Autoload 新增 GameMode (位于 NetworkManager 之后)\n\n')
+    f.write('### Bug 修复\n')
+    f.write('- map_classic.gd: is_connected_to_host() -> is_connected_to_host (property not function)\n')
+    f.write('- network_manager.gd: bare print -> net_log()\n')
+print('Done')

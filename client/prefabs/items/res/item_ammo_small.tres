@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+item_name = "Small Ammo Box"
+id = "bomb_1x1"
+shape = Array[Vector2i]([Vector2i(0, 0)])
+bomb_cap_boost = 1
+radius_cap_boost = 0
+speed_cap_boost = 0.0
+shield_cap_boost = 0
+has_persistent_shield = false
+theme_color = Color(0.5, 0.8, 0.5, 1)

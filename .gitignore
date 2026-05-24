@@ -1,0 +1,36 @@
+# ─── System / OS ───
+.DS_Store
+Thumbs.db
+*.tmp
+
+# ─── IDEs & Editors ───
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# ─── Godot 4 Frontend ───
+# Godot 4
+.godot/
+*.import
+*.translation
+
+# exports (非常重要)
+client/export/
+
+# ─── Go Backend ───
+server/server
+server/*.exe
+server/__debug_bin
+server/test_bin
+server/users.json
+
+# ─── DevOps / Infrastructure ───
+ssl/
+*.pem
+*.key
+.env
+godot-mcp/

@@ -1,0 +1,273 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/Lobby/lobby.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.0509804, 0.105882, 0.164706, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar"]
+bg_color = Color(0, 0, 0, 0.25)
+border_width_bottom = 2
+border_color = Color(0.960784, 0.65098, 0.137255, 0.3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
+bg_color = Color(0.06, 0.10, 0.20, 0.88)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.60, 0.90, 0.3)
+
+[node name="Lobby" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="MainLayout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="TopBar" type="PanelContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_topbar")
+
+[node name="Margin" type="MarginContainer" parent="MainLayout/TopBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_right = 32
+
+[node name="HBox" type="HBoxContainer" parent="MainLayout/TopBar/Margin"]
+layout_mode = 2
+
+[node name="Logo" type="Label" parent="MainLayout/TopBar/Margin/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.65098, 0.137255, 1)
+theme_override_font_sizes/font_size = 36
+text = "浮岛劫掠：破壁者"
+
+[node name="Spacer" type="Control" parent="MainLayout/TopBar/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PlayerInfo" type="HBoxContainer" parent="MainLayout/TopBar/Margin/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="CoinsLabel" type="Label" parent="MainLayout/TopBar/Margin/HBox/PlayerInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.65098, 0.137255, 1)
+theme_override_font_sizes/font_size = 26
+text = "💰 12,500"
+
+[node name="PlayerName" type="Label" parent="MainLayout/TopBar/Margin/HBox/PlayerInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "见习破壁者"
+
+[node name="StatusDot" type="ColorRect" parent="MainLayout/TopBar/Margin/HBox/PlayerInfo"]
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+color = Color(0.290196, 0.870588, 0.501961, 1)
+
+[node name="Body" type="MarginContainer" parent="MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 40
+
+[node name="HBox" type="HBoxContainer" parent="MainLayout/Body"]
+layout_mode = 2
+theme_override_constants/separation = 64
+
+[node name="LeftCol" type="VBoxContainer" parent="MainLayout/Body/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 24
+
+[node name="HeaderHBox" type="HBoxContainer" parent="MainLayout/Body/HBox/LeftCol"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="MainLayout/Body/HBox/LeftCol/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.65098, 0.137255, 1)
+theme_override_font_sizes/font_size = 32
+text = "任务公告板"
+
+[node name="MissionCount" type="Label" parent="MainLayout/Body/HBox/LeftCol/HeaderHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 10
+theme_override_colors/font_color = Color(1, 1, 1, 0.4)
+theme_override_font_sizes/font_size = 22
+text = "共 0 个空投任务"
+
+[node name="Scroll" type="ScrollContainer" parent="MainLayout/Body/HBox/LeftCol"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="RoomList" type="VBoxContainer" parent="MainLayout/Body/HBox/LeftCol/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="ActionsHBox" type="HBoxContainer" parent="MainLayout/Body/HBox/LeftCol"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="RefreshBtn" type="Button" parent="MainLayout/Body/HBox/LeftCol/ActionsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "刷新公告"
+
+[node name="CreateBtn" type="Button" parent="MainLayout/Body/HBox/LeftCol/ActionsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 72)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 26
+text = "发起空投"
+
+[node name="RightCol" type="VBoxContainer" parent="MainLayout/Body/HBox"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="PlayerCard" type="PanelContainer" parent="MainLayout/Body/HBox/RightCol"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+
+[node name="Margin" type="MarginContainer" parent="MainLayout/Body/HBox/RightCol/PlayerCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 32
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/Body/HBox/RightCol/PlayerCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Avatar" type="ColorRect" parent="MainLayout/Body/HBox/RightCol/PlayerCard/Margin/VBox"]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+size_flags_horizontal = 4
+color = Color(1, 1, 1, 0.12)
+
+[node name="Name" type="Label" parent="MainLayout/Body/HBox/RightCol/PlayerCard/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "破壁者"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="MainLayout/Body/HBox/RightCol/PlayerCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.5)
+theme_override_font_sizes/font_size = 22
+text = "见习破壁者"
+horizontal_alignment = 1
+
+[node name="QuickEntires" type="VBoxContainer" parent="MainLayout/Body/HBox/RightCol"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="MaintenanceBtn" type="Button" parent="MainLayout/Body/HBox/RightCol/QuickEntires"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.65098, 0.137255, 1)
+theme_override_font_sizes/font_size = 26
+text = "📦 整备中心"
+
+[node name="AtlasBtn" type="Button" parent="MainLayout/Body/HBox/RightCol/QuickEntires"]
+custom_minimum_size = Vector2(0, 68)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+disabled = true
+text = "角色图鉴"
+
+[node name="SystemInfo" type="VBoxContainer" parent="MainLayout/Body/HBox/RightCol"]
+layout_mode = 2
+size_flags_vertical = 10
+theme_override_constants/separation = 4
+
+[node name="ServerStatus" type="Label" parent="MainLayout/Body/HBox/RightCol/SystemInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.4)
+theme_override_font_sizes/font_size = 18
+text = "服务器：沧溟海枢轴 [在线]"
+
+[node name="Version" type="Label" parent="MainLayout/Body/HBox/RightCol/SystemInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.4)
+theme_override_font_sizes/font_size = 18
+text = "Ver 0.5.2 Demo"
+
+[node name="BottomBar" type="PanelContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_topbar")
+
+[node name="Margin" type="MarginContainer" parent="MainLayout/BottomBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_right = 24
+
+[node name="HBox" type="HBoxContainer" parent="MainLayout/BottomBar/Margin"]
+layout_mode = 2
+
+[node name="ConnStatus" type="Label" parent="MainLayout/BottomBar/Margin/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.290196, 0.870588, 0.501961, 1)
+theme_override_font_sizes/font_size = 18
+text = "● 已连接至沧溟海联合事务所"
+
+[node name="Spacer" type="Control" parent="MainLayout/BottomBar/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LogoutBtn" type="Button" parent="MainLayout/BottomBar/Margin/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.4)
+theme_override_font_sizes/font_size = 18
+text = "退出登录"
+flat = true
+
+[connection signal="pressed" from="MainLayout/Body/HBox/LeftCol/ActionsHBox/RefreshBtn" to="." method="_on_refresh_pressed"]
+[connection signal="pressed" from="MainLayout/Body/HBox/LeftCol/ActionsHBox/CreateBtn" to="." method="_on_create_pressed"]
+[connection signal="pressed" from="MainLayout/Body/HBox/RightCol/QuickEntires/MaintenanceBtn" to="." method="_on_maintenance_pressed"]
+[connection signal="pressed" from="MainLayout/BottomBar/Margin/HBox/LogoutBtn" to="." method="_on_logout_pressed"]

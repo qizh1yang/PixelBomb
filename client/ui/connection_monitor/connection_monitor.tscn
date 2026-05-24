@@ -1,0 +1,31 @@
+[gd_scene load_steps=2 format=3 uid="uid://connmonc123"]
+
+[ext_resource type="Script" uid="uid://dqnxigqiqs0ga" path="res://ui/connection_monitor/connection_monitor.gd" id="1_script"]
+
+[node name="ConnectionMonitor" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="StatusPanel" type="Panel" parent="."]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = 8.0
+offset_right = 180.0
+offset_bottom = 44.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="StatusPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 13
+text = "连接断开，正在尝试重连..."
+horizontal_alignment = 1
+vertical_alignment = 1

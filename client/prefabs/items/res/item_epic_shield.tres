@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+item_name = "Epic L-Shield"
+id = "shield_L"
+shape = Array[Vector2i]([Vector2i(0, 0), Vector2i(0, 1), Vector2i(1, 1)])
+bomb_cap_boost = 0
+radius_cap_boost = 0
+speed_cap_boost = 0.0
+shield_cap_boost = 1
+has_persistent_shield = true
+theme_color = Color(1, 0.8, 0.2, 1)

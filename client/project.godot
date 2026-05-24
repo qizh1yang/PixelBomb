@@ -1,0 +1,62 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="PixelBomb"
+run/main_scene="res://scenes/Login/login.tscn"
+config/features=PackedStringArray("4.5", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+DragCoordinator="*res://autoloads/drag_coordinator.gd"
+NetworkManager="*res://utils/network/network_manager.gd"
+GameMode="*res://autoloads/game_mode.gd"
+GlobalPlayerData="*res://autoloads/player_data.gd"
+CharacterRegistry="*res://autoloads/character_registry.gd"
+CharacterFactory="*res://autoloads/character_factory.gd"
+MapRegistry="*res://autoloads/map_registry.gd"
+UIManager="*res://autoloads/ui_manager.gd"
+ConnectionMonitor="*res://ui/connection_monitor/connection_monitor.tscn"
+DevHUD="*res://ui/dev_hud/dev_hud.tscn"
+McpInteractionServer="*res://autoloads/mcp_interaction_server.gd"
+
+[debug]
+
+offline_mode=false
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[gui]
+
+"#Customfontremoved:åæç¥ç.ttfmissing.UsingThemeDBfallbackfont.#Torestore,placea.ttffileinassets/fonts/anduncomment:#theme/custom_font"="res://assets/fonts/your_font.ttf"
+
+[input]
+
+toggle_backpack={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":66,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+
+[network]
+
+limits/debugger/max_queued_messages=65536
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

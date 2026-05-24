@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "🚀 运行 PixelBomb 服务器",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/server",
+            "cwd": "${workspaceFolder}/server",
+            "env": {},
+            "args": [],
+            "showLog": true,
+            "console": "integratedTerminal"
+        }
+    ]
+}

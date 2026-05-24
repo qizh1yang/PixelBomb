@@ -1,0 +1,110 @@
+[gd_scene load_steps=2 format=3 uid="uid://psc_card01"]
+
+[ext_resource type="Script" path="res://prefabs/HUD/PlayerStatusCard.gd" id="1_script"]
+
+[node name="PlayerStatusCard" type="PanelContainer"]
+custom_minimum_size = Vector2(250, 0)
+offset_right = 250.0
+offset_bottom = 120.0
+script = ExtResource("1_script")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="MainHBox" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AvatarRect" type="TextureRect" parent="MarginContainer/MainHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/MainHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="Row1" type="HBoxContainer" parent="MarginContainer/MainHBox/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PidLabel" type="Label" parent="MarginContainer/MainHBox/VBox/Row1"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.6, 0.6, 0.65, 1)
+theme_override_font_sizes/font_size = 14
+text = "玩家 1"
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/MainHBox/VBox/Row1"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 0.4, 0.7)
+theme_override_font_sizes/font_size = 14
+text = "● 存活"
+horizontal_alignment = 2
+
+[node name="Row2" type="HBoxContainer" parent="MarginContainer/MainHBox/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NameLabel" type="Label" parent="MarginContainer/MainHBox/VBox/Row2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 20
+text = "破壁者"
+clip_text = true
+
+[node name="Row3" type="HBoxContainer" parent="MarginContainer/MainHBox/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BombLabel" type="Label" parent="MarginContainer/MainHBox/VBox/Row3"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+text = "💣 1/4"
+
+[node name="ShieldLabel" type="Label" parent="MarginContainer/MainHBox/VBox/Row3"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+text = "🛡️ 0/1"
+
+[node name="Row4" type="HBoxContainer" parent="MarginContainer/MainHBox/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PowerLabel" type="Label" parent="MarginContainer/MainHBox/VBox/Row4"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.7, 0, 1)
+theme_override_font_sizes/font_size = 16
+text = "⚡ ↑1 ↓2 ←1 →2"
+
+[node name="Row5" type="HBoxContainer" parent="MarginContainer/MainHBox/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SpeedLabel" type="Label" parent="MarginContainer/MainHBox/VBox/Row5"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.525, 0.937, 0.675, 1)
+theme_override_font_sizes/font_size = 13
+text = "👟 +0%"

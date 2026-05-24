@@ -1,0 +1,207 @@
+[gd_scene load_steps=6 format=3 uid="uid://usqbcy18aupt"]
+
+[ext_resource type="Script" uid="uid://b61v7g3bn68j2" path="res://scenes/Login/login.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://bnsj2hngn52kc" path="res://scenes/Login/res/登陆界面背景图.webp" id="2_bg_tex"]
+
+[sub_resource type="Curve" id="Curve_particles"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.5, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="Gradient" id="Gradient_particles"]
+offsets = PackedFloat32Array(0, 0, 1)
+colors = PackedColorArray(0.960784, 0.65098, 0.137255, 0, 0.960784, 0.65098, 0.137255, 0, 0.960784, 0.65098, 0.137255, 0.4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.06, 0.12, 0.22, 0.88)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.6, 0.9, 0.35)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 30
+
+[node name="Login" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg_tex")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BgDarken" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.05, 0.1, 0.55)
+
+[node name="BGParticles" type="CPUParticles2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(480, 270)
+amount = 60
+lifetime = 4.0
+preprocess = 4.0
+emission_shape = 3
+emission_rect_extents = Vector2(500, 300)
+direction = Vector2(0, -1)
+spread = 20.0
+gravity = Vector2(0, -5)
+initial_velocity_min = 10.0
+initial_velocity_max = 30.0
+scale_amount_min = 2.5
+scale_amount_max = 5.0
+scale_amount_curve = SubResource("Curve_particles")
+color_ramp = SubResource("Gradient_particles")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainVBox" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 80
+
+[node name="LogoVBox" type="VBoxContainer" parent="CenterContainer/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Logo" type="Label" parent="CenterContainer/MainVBox/LogoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.960784, 0.65098, 0.137255, 1)
+theme_override_font_sizes/font_size = 80
+text = "SHATTERED ISLAND"
+horizontal_alignment = 1
+
+[node name="SubLogo" type="Label" parent="CenterContainer/MainVBox/LogoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.5)
+theme_override_font_sizes/font_size = 32
+text = "浮岛劫掠：破壁者"
+horizontal_alignment = 1
+
+[node name="LoginPanel" type="PanelContainer" parent="CenterContainer/MainVBox"]
+custom_minimum_size = Vector2(680, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainVBox/LoginPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 64
+theme_override_constants/margin_top = 60
+theme_override_constants/margin_right = 64
+theme_override_constants/margin_bottom = 60
+
+[node name="FormVBox" type="VBoxContainer" parent="CenterContainer/MainVBox/LoginPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 36
+
+[node name="Title" type="Label" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "身份认证"
+horizontal_alignment = 1
+
+[node name="Control" type="Control" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="UsernameInput" type="LineEdit" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+placeholder_text = "破壁者代号"
+alignment = 1
+
+[node name="PasswordInput" type="LineEdit" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+placeholder_text = "安全访问密钥"
+alignment = 1
+secret = true
+
+[node name="ErrorLabel" type="Label" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.909804, 0.227451, 0.227451, 1)
+theme_override_font_sizes/font_size = 20
+text = "用户名或密码错误"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="RegisterBtn" type="Button" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 0.6)
+theme_override_font_sizes/font_size = 26
+text = "注册账号"
+
+[node name="LoginBtn" type="Button" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
+text = "接入系统"
+
+[node name="LoadingOverlay" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.4)
+
+[node name="Label" type="Label" parent="LoadingOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = -13.0
+offset_right = 40.0
+offset_bottom = 13.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 26
+text = "认证中..."
+
+[connection signal="pressed" from="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox/ButtonsHBox/RegisterBtn" to="." method="_on_register_pressed"]
+[connection signal="pressed" from="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox/ButtonsHBox/LoginBtn" to="." method="_on_login_pressed"]

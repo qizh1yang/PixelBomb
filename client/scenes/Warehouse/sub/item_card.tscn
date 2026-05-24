@@ -1,0 +1,76 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/Warehouse/sub/item_card.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+bg_color = Color(0.0588235, 0.0980392, 0.176471, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.227451, 0.294118, 0.423529, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="ItemCard" type="Button"]
+custom_minimum_size = Vector2(120, 120)
+theme_override_styles/normal = SubResource("StyleBoxFlat_card")
+script = ExtResource("1_script")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 2
+offset_top = 4.0
+offset_bottom = -4.0
+
+[node name="IconArea" type="Panel" parent="VBox"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="VBox/IconArea"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -24.0
+offset_right = 24.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ItemName" type="Label" parent="VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "物品名称"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="InfoLabel" type="Label" parent="VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.54902, 0.647059, 0.788235, 1)
+theme_override_font_sizes/font_size = 10
+text = "1×1 · 效果"
+horizontal_alignment = 1
+clip_text = true
+
+
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

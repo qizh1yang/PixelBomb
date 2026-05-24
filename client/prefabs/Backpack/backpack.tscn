@@ -1,0 +1,235 @@
+[gd_scene load_steps=8 format=3 uid="uid://c6neeeuvaa58d"]
+
+[ext_resource type="Script" path="res://prefabs/Backpack/backpack.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg_panel"]
+bg_color = Color(0.07, 0.08, 0.13, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.29, 0.56, 0.89, 0.8)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 12
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_special"]
+bg_color = Color(0.047, 0.055, 0.09, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.83, 0.69, 0.22, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+bg_color = Color(0.12, 0.16, 0.26, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.35, 0.55, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+bg_color = Color(0.16, 0.23, 0.38, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.29, 0.56, 0.89, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_popup"]
+bg_color = Color(0.1, 0.11, 0.18, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.27, 0.27, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_red"]
+bg_color = Color(0.65, 0.15, 0.15, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9, 0.3, 0.3, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="Backpack" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -880.0
+offset_top = 120.0
+offset_right = -80.0
+offset_bottom = 720.0
+grow_horizontal = 0
+mouse_filter = 1
+script = ExtResource("1_script")
+
+[node name="BgPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg_panel")
+
+[node name="Margin" type="MarginContainer" parent="BgPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="BgPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleBar" type="HBoxContainer" parent="BgPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="MainTitle" type="Label" parent="BgPanel/Margin/VBox/TitleBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.88, 0.88, 1)
+theme_override_font_sizes/font_size = 22
+text = "主背包"
+
+[node name="HSpacer" type="Control" parent="BgPanel/Margin/VBox/TitleBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="CloseBtn" type="Button" parent="BgPanel/Margin/VBox/TitleBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "×"
+flat = true
+
+[node name="ContentArea" type="HBoxContainer" parent="BgPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="MainBackpack" type="MarginContainer" parent="BgPanel/Margin/VBox/ContentArea"]
+layout_mode = 2
+
+[node name="GridWrapper" type="Control" parent="BgPanel/Margin/VBox/ContentArea/MainBackpack"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(424, 352)
+layout_mode = 2
+
+[node name="Cells" type="Control" parent="BgPanel/Margin/VBox/ContentArea/MainBackpack/GridWrapper"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Items" type="Control" parent="BgPanel/Margin/VBox/ContentArea/MainBackpack/GridWrapper"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Divider" type="ColorRect" parent="BgPanel/Margin/VBox/ContentArea"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+color = Color(0.15, 0.16, 0.22, 1)
+
+[node name="SpecialArea" type="MarginContainer" parent="BgPanel/Margin/VBox/ContentArea"]
+layout_mode = 2
+
+[node name="SpecialVBox" type="VBoxContainer" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Spacer" type="Control" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="SpecialTitle" type="Label" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 18
+text = "🔒 保险箱"
+horizontal_alignment = 1
+
+[node name="SpecialPanel" type="Panel" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(136, 136)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_special")
+
+[node name="SpecialCells" type="Control" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox/SpecialPanel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SpecialItems" type="Control" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox/SpecialPanel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Spacer2" type="Control" parent="BgPanel/Margin/VBox/ContentArea/SpecialArea/SpecialVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="TipLabel" type="Label" parent="BgPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.49, 0.55, 0.65, 1)
+theme_override_font_sizes/font_size = 11
+text = "💡 提示: ESC/B 关闭背包 | R 旋转物品 | 鼠标右键 开启战术菜单"
+horizontal_alignment = 1

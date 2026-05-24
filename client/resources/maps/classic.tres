@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MapResource" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://prefabs/map/map_classic/map_classic.tscn" id="1_scene"]
+[ext_resource type="Script" path="res://resources/maps/map_base.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+map_id = "classic"
+display_name = "碎空岛·原野"
+description = "最平衡的竞技场，适合所有战术。"
+map_scene = ExtResource("1_scene")
+width = 17
+height = 17
+wall_density = 0.6
+map_theme_color = Color(1, 1, 1, 1)
+custom_rules = {}

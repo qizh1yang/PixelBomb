@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://prefabs/items/OutfitItemEntity/outfit_item_entity.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="2_texture"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_item"]
+radius = 8.0
+
+[node name="OutfitItemEntity" type="Area2D"]
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("2_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_item")

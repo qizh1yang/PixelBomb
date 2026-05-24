@@ -1,0 +1,145 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/Room/sub/player_slot.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slot"]
+bg_color = Color(0.06, 0.1, 0.2, 0.5)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.6, 0.9, 0.15)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+bg_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+bg_color = Color(0.35, 0.6, 0.9, 0.04)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_pressed"]
+bg_color = Color(0.35, 0.6, 0.9, 0.08)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="PlayerSlot" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 140)
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 140.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot")
+script = ExtResource("1_script")
+
+[node name="EmptyContent" type="CenterContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="EmptyContent"]
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="PlusLabel" type="Label" parent="EmptyContent/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.2)
+theme_override_font_sizes/font_size = 28
+text = "+"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="EmptyContent/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.25)
+theme_override_font_sizes/font_size = 16
+text = "点击邀请队友"
+horizontal_alignment = 1
+
+[node name="OccupiedContent" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Avatar" type="TextureRect" parent="OccupiedContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Info" type="VBoxContainer" parent="OccupiedContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="HBox" type="HBoxContainer" parent="OccupiedContent/Info"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PlayerName" type="Label" parent="OccupiedContent/Info/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "玩家昵称"
+
+[node name="RoleTag" type="Label" parent="OccupiedContent/Info/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "队长"
+
+[node name="CharName" type="Label" parent="OccupiedContent/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.690196, 0.690196, 0.752941, 1)
+theme_override_font_sizes/font_size = 14
+text = "角色名称"
+
+[node name="ReadyStatus" type="HBoxContainer" parent="OccupiedContent"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="StatusDot" type="ColorRect" parent="OccupiedContent/ReadyStatus"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(12, 12)
+layout_mode = 2
+size_flags_vertical = 4
+color = Color(0.36, 0.86, 0.44, 1)
+
+[node name="StatusText" type="Label" parent="OccupiedContent/ReadyStatus"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "已准备"
+
+[node name="SelfMarker" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(2, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+color = Color(0.96, 0.65, 0.14, 1)
+
+[node name="InvisibleButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+flat = true

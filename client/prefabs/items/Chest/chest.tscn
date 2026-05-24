@@ -1,0 +1,52 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://prefabs/items/Chest/chest.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://prefabs/map/map_spring/res/TilesetElement.png" id="2_texture"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_chest"]
+radius = 10.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0, 0, 0, 0.4)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
+bg_color = Color(1, 0.8, 0, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.4, 0, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="Chest" type="Area2D"]
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_texture")
+region_enabled = true
+region_rect = Rect2(48, 16, 16, 16)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_chest")
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+offset_left = -12.0
+offset_top = -18.0
+offset_right = 12.0
+offset_bottom = -14.0
+theme_override_styles/background = SubResource("StyleBoxFlat_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_fill")
+max_value = 1.5
+show_percentage = false
+
+[node name="Timer" type="Timer" parent="."]
+one_shot = true

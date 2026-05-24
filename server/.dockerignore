@@ -1,0 +1,30 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Godot files
+.godot/
+.import/
+*.import
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

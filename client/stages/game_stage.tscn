@@ -1,0 +1,80 @@
+[gd_scene load_steps=7 format=3 uid="uid://5hbjcm6k4k73"]
+
+[ext_resource type="Script" uid="uid://crn2ivbcxh6y4" path="res://stages/game_stage.gd" id="1_stage"]
+[ext_resource type="Shader" uid="uid://g22g447tfryq" path="res://assets/shaders/water_flow.gdshader" id="2_water_shader"]
+[ext_resource type="PackedScene" uid="uid://hudc123" path="res://prefabs/HUD/hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" uid="uid://c6neeeuvaa58d" path="res://prefabs/Backpack/backpack.tscn" id="4_backpack"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
+shader = ExtResource("2_water_shader")
+shader_parameter/color_deep = Color(0.05, 0.35, 0.55, 1)
+shader_parameter/color_mid = Color(0.03, 0.18, 0.65, 1)
+shader_parameter/color_light = Color(0.1, 0.4, 0.7, 1)
+shader_parameter/color_foam = Color(0.9, 0.95, 1, 1)
+shader_parameter/speed = 0.5
+shader_parameter/wave_scale = 1.0
+shader_parameter/color_steps = 4
+shader_parameter/use_dither = true
+shader_parameter/show_grid = true
+shader_parameter/grid_size = 16.0
+shader_parameter/grid_alpha = 0.12
+shader_parameter/wave_strength = 1.0
+shader_parameter/shimmer_strength = 0.5
+
+[sub_resource type="Environment" id="Environment_glow"]
+background_mode = 3
+glow_enabled = true
+glow_intensity = 0.5
+glow_strength = 0.8
+glow_bloom = 0.1
+glow_blend_mode = 0
+
+[node name="GameStage" type="Node2D"]
+script = ExtResource("1_stage")
+
+[node name="Background" type="CanvasLayer" parent="."]
+layer = -10
+
+[node name="ColorRect" type="ColorRect" parent="Background"]
+material = SubResource("ShaderMaterial_water")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MapContainer" type="Node2D" parent="."]
+
+[node name="EntityLayer" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(3, 3)
+position_smoothing_enabled = true
+
+[node name="HUD" parent="." instance=ExtResource("3_hud")]
+
+[node name="BackpackLayer" type="CanvasLayer" parent="."]
+layer = 50
+
+[node name="Backpack" parent="BackpackLayer" instance=ExtResource("4_backpack")]
+offset_left = -6.0
+offset_top = 3.0
+offset_right = -6.0
+offset_bottom = 3.0
+
+[node name="TransitionLayer" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="ColorRect" type="ColorRect" parent="TransitionLayer"]
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_glow")

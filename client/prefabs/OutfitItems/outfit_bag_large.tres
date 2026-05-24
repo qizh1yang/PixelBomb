@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=3 format=3 uid="uid://bk446y28vanr6"]
+
+[ext_resource type="Script" uid="uid://jkci67oodi1s" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://pfpvfy7wsqhi" path="res://prefabs/items/OutfitItemEntity/res/增加炸弹数量容器图片/大型购物袋.webp" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+item_name = "大号购物袋"
+id = "outfit_bag_large"
+icon = ExtResource("2_icon")
+shape = Array[Vector2i]([Vector2i(0, 0)])
+bomb_cap_boost = 1
