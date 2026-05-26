@@ -14,7 +14,7 @@ func setup(data: Dictionary) -> void:
 	var count = data.get("player_count", 1)
 	playerCount.text = "%d/4 人" % count
 	if count >= 4:
-		playerCount.add_theme_color_override("font_color", Color("#4ADE80"))
+		playerCount.add_theme_color_override("font_color", Color("#b96a5d"))
 	else:
 		playerCount.remove_theme_color_override("font_color")
 	
@@ -23,12 +23,12 @@ func setup(data: Dictionary) -> void:
 	var in_game = data.get("in_game", false)
 	if in_game:
 		statusLabel.text = "● 进行中"
-		statusLabel.modulate = Color("#888888")
+		statusLabel.modulate = Color("#5a635d")
 		joinBtn.disabled = true
 		joinBtn.text = "进行中"
 	else:
 		statusLabel.text = "● 等待中"
-		statusLabel.modulate = Color("#F5A623")
+		statusLabel.modulate = Color("#7fa97a")
 		joinBtn.disabled = false
 		joinBtn.text = "加入任务"
 

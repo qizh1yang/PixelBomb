@@ -65,7 +65,7 @@ func _get_char_name(idx: int) -> String:
 	return "Player %d" % (idx + 1)
 
 func _get_char_avatar(idx: int) -> Texture:
-	var path = "res://prefabs/Players/player%d/res/Idle.png" % (idx + 1)
+	var path = "res://prefabs/Players/player%d/res/Faceset.png" % (idx + 1)
 	if ResourceLoader.exists(path):
 		return load(path)
 	return null

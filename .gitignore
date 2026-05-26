@@ -21,6 +21,12 @@ Thumbs.db
 # exports (非常重要)
 client/export/
 
+# web build output
+build/
+
+# Claude Code
+.claude/
+
 # ─── Go Backend ───
 server/server
 server/*.exe

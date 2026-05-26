@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 
 	"bomberman-server/logic"
+	"bomberman-server/metrics"
+	"bomberman-server/storage"
 
 	"github.com/lonng/nano"
 	"github.com/lonng/nano/component"
@@ -25,19 +30,38 @@ func printBanner() {
 func main() {
 	printBanner()
 
-	// 1. 初始化 Nano 组件
+	// ── 1. Initialize Redis tombstone store (optional, falls back to memory) ──
+	redisStore := storage.NewRedisTombstoneStore()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	if err := redisStore.Ping(ctx); err != nil {
+		log.Printf("[Server] Redis not available (%v) — using in-memory tombstone store", err)
+	} else {
+		log.Println("[Server] Redis connected — using Redis-backed tombstone store")
+		logic.UseRedisStore(redisStore)
+	}
+
+	// ── 2. Start Prometheus metrics server ──
+	metricsAddr := os.Getenv("METRICS_PORT")
+	if metricsAddr == "" {
+		metricsAddr = ":9090"
+	}
+	if !strings.HasPrefix(metricsAddr, ":") {
+		metricsAddr = ":" + metricsAddr
+	}
+	metrics.StartMetricsServer(metricsAddr)
+	log.Printf("[Server] Prometheus metrics endpoint at %s/metrics", metricsAddr)
+
+	// ── 3. Initialize Nano components ──
 	userComp := logic.NewUserComponent()
 	roomComp := logic.NewRoomComponent(userComp)
 
-	// 2. 准备组件集合，并显式指定组件名称以简化路由
 	components := &component.Components{}
 	components.Register(userComp, component.WithName("User"))
 	components.Register(roomComp, component.WithName("Room"))
 
-	// 3. 配置并启动 Nano
-	log.Println("[Server] Nano engine starting on :8080...")
-	
-	// 并存健康检查 API (移至 8081 避免冲突)
+	// ── 4. Health check server ──
 	go func() {
 		http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("OK"))
@@ -47,11 +71,13 @@ func main() {
 		}
 	}()
 
-	// 启动 Nano
-	nano.Listen(":8080", 
+	// ── 5. Launch Nano game server ──
+	log.Println("[Server] Nano engine starting on :8080...")
+	nano.Listen(":8080",
 		nano.WithIsWebsocket(true),
 		nano.WithWSPath("/ws"),
 		nano.WithSerializer(json.NewSerializer()),
+		nano.WithHeartbeatInterval(5*time.Second),
 		nano.WithComponents(components),
 		nano.WithDebugMode(),
 	)

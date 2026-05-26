@@ -52,7 +52,7 @@ func _setup_char_selection() -> void:
 	for i in range(4):
 		var card = CharCardScene.instantiate()
 		charList.add_child(card)
-		var texture = load("res://prefabs/Players/player%d/res/Idle.png" % (i + 1))
+		var texture = load("res://prefabs/Players/player%d/res/Faceset.png" % (i + 1))
 		card.setup(i, names[i], texture)
 		card.pressed.connect(_on_char_selected.bind(i))
 		char_cards.append(card)

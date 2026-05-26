@@ -11,6 +11,9 @@ import (
 	"sync"
 	"time"
 
+	"bomberman-server/metrics"
+	"bomberman-server/security"
+
 	"github.com/lonng/nano"
 	"github.com/lonng/nano/component"
 	"github.com/lonng/nano/session"
@@ -24,6 +27,7 @@ type (
 		rooms    map[string]*NanoRoom
 		lock     sync.RWMutex
 		userComp *UserComponent
+		sweeper  *TombstoneSweeper
 	}
 
 	SettlementRequest struct {
@@ -102,10 +106,23 @@ func (c *RoomComponent) Name() string {
 
 func (c *RoomComponent) AfterInit() {
 	log.Println("[Nano] RoomComponent initialized")
-	// 注册全局会话关闭回调，用于清理房间
+
+	// Register global session close callback for tombstone creation
 	session.Lifetime.OnClosed(func(s *session.Session) {
-		c.Leave(s, nil)
+		c.MarkDisconnected(s)
 	})
+
+	// Start the central tombstone sweeper (replaces per-player sleep goroutines)
+	c.sweeper = NewTombstoneSweeper(5*time.Second, func(playerID string, roomID string) {
+		uid, err := strconv.ParseInt(playerID, 10, 64)
+		if err != nil {
+			log.Printf("[Tombstone] Sweeper: invalid playerID %s", playerID)
+			return
+		}
+		c.doLeaveByUID(uid, roomID)
+		metrics.TombstoneExpiredTotal.Inc()
+	})
+	c.sweeper.Start()
 }
 
 func (r *NanoRoom) getUnusedSpawnIndex() int {
@@ -133,6 +150,12 @@ func (c *RoomComponent) Join(s *session.Session, msg *JoinRequest) error {
 
 	c.lock.Lock()
 	r, ok := c.rooms[roomID]
+	if ok && r.Group != nil && r.Group.Count() == 0 {
+		// 房间存在但活跃人数为0，说明该房间已废弃且正处于墓碑硬清理期。直接将其物理销毁重置，避免脏状态残留
+		delete(c.rooms, roomID)
+		ok = false
+		log.Printf("[Nano] Room %s had 0 active players during Join, destroyed and recreated.", roomID)
+	}
 	if !ok {
 		r = &NanoRoom{
 			ID:          roomID,
@@ -186,11 +209,16 @@ func (c *RoomComponent) Join(s *session.Session, msg *JoinRequest) error {
 
 	c.syncRoom(r)
 
+	token := security.GenerateResumeToken(s.UID(), roomID)
+	s.Set("resume_token", token.String())
+
 	// 推送欢迎消息
 	return s.Response(map[string]interface{}{
-		"type": "WELCOME",
-		"room": roomID,
-		"seed": r.Seed,
+		"type":         "WELCOME",
+		"room":         roomID,
+		"seed":         r.Seed,
+		"player_id":    strconv.FormatInt(s.UID(), 10),
+		"resume_token": token.String(),
 	})
 }
 
@@ -241,6 +269,7 @@ func (c *RoomComponent) Create(s *session.Session, msg *CreateRequest) error {
 	r.Players[s.UID()] = &NanoPlayer{
 		UID:        s.UID(),
 		Name:       pName,
+		Ready:      true,
 		Char:       0,
 		SpawnIndex: 0,
 	}
@@ -248,10 +277,15 @@ func (c *RoomComponent) Create(s *session.Session, msg *CreateRequest) error {
 
 	c.syncRoom(r)
 
+	token := security.GenerateResumeToken(s.UID(), roomID)
+	s.Set("resume_token", token.String())
+
 	return s.Response(map[string]interface{}{
-		"type": "WELCOME",
-		"room": roomID,
-		"seed": r.Seed,
+		"type":         "WELCOME",
+		"room":         roomID,
+		"seed":         r.Seed,
+		"player_id":    strconv.FormatInt(s.UID(), 10),
+		"resume_token": token.String(),
 	})
 }
 
@@ -316,10 +350,11 @@ func (c *RoomComponent) List(s *session.Session, msg []byte) error {
 
 	var rooms []RoomInfo
 	for _, r := range c.rooms {
-		if r.State == 0 {
+		count := r.Group.Count()
+		if r.State == 0 && count > 0 {
 			rooms = append(rooms, RoomInfo{
 				Name:        r.ID,
-				PlayerCount: r.Group.Count(),
+				PlayerCount: count,
 			})
 		}
 	}
@@ -411,6 +446,7 @@ func CalculateInitialStats(backpack []BackpackItemInfo) PlayerInitialStats {
 		seen[item.ResPath] = true
 
 		switch item.ResPath {
+		// 旧版局外物品兼容
 		case "res://prefabs/items/res/item_boots.tres":
 			speed += 20.0
 		case "res://prefabs/items/res/item_epic_shield.tres":
@@ -422,6 +458,48 @@ func CalculateInitialStats(backpack []BackpackItemInfo) PlayerInitialStats {
 			bomb += 2
 		case "res://prefabs/items/res/item_ammo_small.tres":
 			bomb += 1
+
+		// 新版局外物品（TRES格式）
+		// 1. 炸弹上限加成
+		case "res://prefabs/OutfitItems/outfit_bag_large.tres":
+			bomb += 1
+		case "res://prefabs/OutfitItems/outfit_suitcase_wood.tres":
+			bomb += 2
+		case "res://prefabs/OutfitItems/outfit_pumpkin_giant.tres":
+			bomb += 3
+
+		// 2. 移动速度上限加成
+		case "res://prefabs/OutfitItems/outfit_speed_1.tres":
+			speed += 1.0
+		case "res://prefabs/OutfitItems/outfit_speed_3.tres":
+			speed += 3.0
+		case "res://prefabs/OutfitItems/outfit_speed_5.tres":
+			speed += 5.0
+
+		// 3. 护盾加成与免死金牌
+		case "res://prefabs/OutfitItems/outfit_epic_shield.tres":
+			shield += 1
+			epic = true
+
+		// 4. 爆炸范围加成（全向及方向卷轴）
+		case "res://prefabs/OutfitItems/outfit_power_1.tres",
+			"res://prefabs/OutfitItems/outfit_power_up_1.tres",
+			"res://prefabs/OutfitItems/outfit_power_down_1.tres",
+			"res://prefabs/OutfitItems/outfit_power_left_1.tres",
+			"res://prefabs/OutfitItems/outfit_power_right_1.tres":
+			radius += 1
+		case "res://prefabs/OutfitItems/outfit_power_2.tres",
+			"res://prefabs/OutfitItems/outfit_power_up_2.tres",
+			"res://prefabs/OutfitItems/outfit_power_down_2.tres",
+			"res://prefabs/OutfitItems/outfit_power_left_2.tres",
+			"res://prefabs/OutfitItems/outfit_power_right_2.tres":
+			radius += 2
+		case "res://prefabs/OutfitItems/outfit_power_3.tres",
+			"res://prefabs/OutfitItems/outfit_power_up_3.tres",
+			"res://prefabs/OutfitItems/outfit_power_down_3.tres",
+			"res://prefabs/OutfitItems/outfit_power_left_3.tres",
+			"res://prefabs/OutfitItems/outfit_power_right_3.tres":
+			radius += 3
 		}
 	}
 
@@ -451,11 +529,10 @@ func (c *RoomComponent) StartGame(s *session.Session, msg []byte) error {
 		r.Group.Broadcast("onGameStart", map[string]interface{}{"seed": r.Seed})
 		
 		// 初始化局内权威 GameState
-		// 初始化局内权威 GameState
 		r.GameState = &GameState{
 			Players:       make(map[string]*PlayerState),
 			Bombs:         make(map[string]*BombState),
-			RemainingTime: 180, // 初始对局时间：180 秒
+			RemainingTime: 300, // 初始对局时间：300 秒 (5分钟)
 			Lock:          sync.Mutex{},
 		}
 
@@ -564,6 +641,10 @@ func (c *RoomComponent) doLeave(s *session.Session) {
 	}
 	roomID := roomIDVal.(string)
 
+	// Clean up any tombstone for this player (normal leave = no reconnect needed)
+	GlobalTombstoneStore.DeleteByPlayerID(strconv.FormatInt(s.UID(), 10))
+	metrics.ActiveTombstones.Set(float64(GlobalTombstoneStore.Count()))
+
 	c.lock.Lock()
 	r, ok := c.rooms[roomID]
 	if ok && r.Players != nil {
@@ -575,7 +656,6 @@ func (c *RoomComponent) doLeave(s *session.Session) {
 
 	if ok {
 		c.syncRoom(r)
-		// 如果房间空了，清理房间
 		c.lock.Lock()
 		if r.Group.Count() == 0 {
 			r.InGame = false
@@ -584,6 +664,34 @@ func (c *RoomComponent) doLeave(s *session.Session) {
 		}
 		c.lock.Unlock()
 	}
+}
+
+// doLeaveByUID removes a player from a room by UID, without requiring a session.
+// Used by the tombstone sweeper for hard cleanup after expiry.
+// The player has already been removed from the Group by MarkDisconnected.
+func (c *RoomComponent) doLeaveByUID(uid int64, roomID string) {
+	c.lock.Lock()
+	r, ok := c.rooms[roomID]
+	if ok && r.Players != nil {
+		delete(r.Players, uid)
+	}
+	c.lock.Unlock()
+
+	if !ok {
+		return
+	}
+
+	c.syncRoom(r)
+
+	c.lock.Lock()
+	if r.Group != nil && r.Group.Count() == 0 {
+		r.InGame = false
+		delete(c.rooms, roomID)
+		log.Printf("[Nano] Room %s is empty, deleted (via sweeper).", roomID)
+	}
+	c.lock.Unlock()
+
+	log.Printf("[Nano] Player %d hard-removed from room %s by sweeper", uid, roomID)
 }
 
 // Evacuate handles evacuation request
@@ -861,6 +969,13 @@ func (c *RoomComponent) UpdateBombs(r *NanoRoom, delta float64) {
 		by := bomb.Y
 		rad := bomb.Radius
 
+		// 广播炸弹爆炸消息给客户端，触发同步爆炸画面
+		r.Group.Broadcast("onBombExploded", map[string]interface{}{
+			"x":      bx,
+			"y":      by,
+			"radius": rad,
+		})
+
 		for pid, ps := range r.GameState.Players {
 			if ps.IsDead || ps.IsEvacuated {
 				continue
@@ -951,8 +1066,200 @@ func (c *RoomComponent) runGameLoop(r *NanoRoom) {
 		c.UpdateBombs(r, 0.05)
 		c.lock.Unlock()
 
+		remainingTime := 300
+		if r.GameState != nil {
+			r.GameState.Lock.Lock()
+			remainingTime = r.GameState.RemainingTime
+			r.GameState.Lock.Unlock()
+		}
+
 		r.Group.Broadcast("onTick", map[string]interface{}{
-			"time": time.Now().Unix(),
+			"time":           time.Now().Unix(),
+			"remaining_time": remainingTime,
 		})
 	}
 }
+
+// MarkDisconnected marks a player as disconnected, creates a tombstone with a
+// selective snapshot, and removes the session from the room group.
+// Hard cleanup is handled by the central TombstoneSweeper — no per-player goroutine.
+func (c *RoomComponent) MarkDisconnected(s *session.Session) {
+	roomIDVal := s.Value("room_id")
+	if roomIDVal == nil {
+		return
+	}
+	roomID := roomIDVal.(string)
+
+	uid := s.UID()
+	uidStr := strconv.FormatInt(uid, 10)
+
+	// Generate or reuse resume token
+	tokenVal := s.Value("resume_token")
+	var rt *security.ResumeToken
+	if tokenVal != nil {
+		// Reuse existing token if still valid
+		rt = security.ParseResumeToken(tokenVal.(string))
+	}
+	if rt == nil || time.Now().Unix() > rt.ExpireAt {
+		rt = security.GenerateResumeToken(uid, roomID)
+	}
+	tokenStr := rt.String()
+
+	log.Printf("[Nano-Reconnect] Player %d disconnected from room %s. Creating tombstone (token prefix: %s)...",
+		uid, roomID, tokenStr[:min(10, len(tokenStr))])
+
+	// Capture a selective snapshot (safe-to-restore fields only)
+	c.lock.Lock()
+	r, roomExists := c.rooms[roomID]
+	var playerSnapshot *PlayerState
+	if roomExists && r.GameState != nil {
+		r.GameState.Lock.Lock()
+		if ps, ok := r.GameState.Players[uidStr]; ok {
+			playerSnapshot = ps.SnapshotRestorable()
+		}
+		r.GameState.Lock.Unlock()
+	}
+	c.lock.Unlock()
+
+	// Store tombstone in global store (memory or Redis)
+	t := &TombstoneData{
+		PlayerID:     uidStr,
+		RoomID:       roomID,
+		SessionID:    s.ID(),
+		DisconnectAt: time.Now(),
+		ExpireAt:     time.Unix(rt.ExpireAt, 0),
+		Snapshot:     playerSnapshot,
+	}
+	if err := GlobalTombstoneStore.Store(tokenStr, t); err != nil {
+		log.Printf("[Nano-Reconnect] Failed to store tombstone: %v", err)
+	}
+
+	// Remove from room group to prevent broadcasts to dead socket
+	if roomExists && r.Group != nil {
+		r.Group.Leave(s)
+	}
+
+	metrics.TombstoneCreatedTotal.Inc()
+	metrics.ActiveTombstones.Set(float64(GlobalTombstoneStore.Count()))
+
+	// Hard cleanup is now handled by the central TombstoneSweeper.
+	// No per-player goroutine is spawned.
+}
+
+// ResumeRequest 断线重连恢复请求参数
+type ResumeRequest struct {
+	ResumeToken string `json:"resume_token"`
+	LastAckSeq  int64  `json:"last_ack_seq"`
+}
+
+// Resume restores a disconnected player's session and selectively applies
+// the tombstone snapshot. Authority fields (death, damage, evac) are preserved.
+// Route: Room.Resume
+func (c *RoomComponent) Resume(s *session.Session, msg *ResumeRequest) error {
+	startTime := time.Now()
+	token := msg.ResumeToken
+	log.Printf("[Nano-Reconnect] Received Room.Resume for token prefix: %s", token[:min(10, len(token))])
+
+	// 1. Atomically consume the tombstone (GET+DELETE, prevents double-consumption)
+	tomb, ok := GlobalTombstoneStore.Consume(token)
+	if !ok {
+		log.Printf("[Nano-Reconnect] Resume failed: token expired or already consumed")
+		metrics.ResumeFailedTotal.WithLabelValues(metrics.ReasonExpired).Inc()
+		return s.Response(map[string]interface{}{
+			"success": false,
+			"error":   "Tombstone expired or invalid",
+		})
+	}
+
+	// 2. Verify HMAC signature (prevents token forgery)
+	uid, err := strconv.ParseInt(tomb.PlayerID, 10, 64)
+	if err != nil {
+		metrics.ResumeFailedTotal.WithLabelValues(metrics.ReasonPlayerIDFormat).Inc()
+		return s.Response(map[string]interface{}{
+			"success": false,
+			"error":   "Invalid Player ID format in tombstone",
+		})
+	}
+
+	if !security.VerifyResumeToken(token, uid, tomb.RoomID) {
+		log.Printf("[Nano-Reconnect] Resume failed: HMAC verification failed for player %d", uid)
+		metrics.ResumeFailedTotal.WithLabelValues(metrics.ReasonInvalidToken).Inc()
+		return s.Response(map[string]interface{}{
+			"success": false,
+			"error":   "Token verification failed",
+		})
+	}
+
+	roomID := tomb.RoomID
+
+	// 3. Verify room still exists
+	c.lock.Lock()
+	r, roomExists := c.rooms[roomID]
+	if !roomExists {
+		c.lock.Unlock()
+		metrics.ResumeFailedTotal.WithLabelValues(metrics.ReasonRoomNotFound).Inc()
+		return s.Response(map[string]interface{}{
+			"success": false,
+			"error":   "Room no longer exists",
+		})
+	}
+	c.lock.Unlock()
+
+	// 4. Bind new session to the returning player's UID
+	if err := s.Bind(uid); err != nil {
+		log.Printf("[Nano-Reconnect] Resume session bind failed: %v", err)
+		metrics.ResumeFailedTotal.WithLabelValues(metrics.ReasonBindFailed).Inc()
+		return s.Response(map[string]interface{}{
+			"success": false,
+			"error":   "Session bind failed",
+		})
+	}
+	s.Set("room_id", roomID)
+	s.Set("resume_token", token)
+
+	// 5. Re-add to room group
+	r.Group.Add(s)
+
+	// 6. Selectively restore player state (safe fields only, not authority fields)
+	if r.GameState != nil && tomb.Snapshot != nil {
+		r.GameState.Lock.Lock()
+		if liveState, exists := r.GameState.Players[tomb.PlayerID]; exists {
+			// Apply only safe-to-restore fields; authority fields (IsDead,
+			// IsEvacuated, LastDamageTime, etc.) remain as-is from server truth.
+			liveState.ApplySnapshotRestorable(tomb.Snapshot)
+			log.Printf("[Nano-Reconnect] Player %s state selectively restored (version: %d)",
+				tomb.PlayerID, tomb.Snapshot.StateVersion)
+		} else {
+			// Player was fully removed — restore from snapshot
+			r.GameState.Players[tomb.PlayerID] = tomb.Snapshot
+			log.Printf("[Nano-Reconnect] Player %s fully restored from snapshot", tomb.PlayerID)
+		}
+		r.GameState.Lock.Unlock()
+	}
+
+	log.Printf("[Nano-Reconnect] Player %d successfully resumed to room %s (took %v)", uid, roomID, time.Since(startTime))
+
+	// 7. Sync room state to all players
+	c.syncRoom(r)
+
+	// 8. Metrics
+	metrics.TombstoneResumedTotal.Inc()
+	metrics.ResumeLatency.Observe(time.Since(startTime).Seconds())
+	metrics.ActiveTombstones.Set(float64(GlobalTombstoneStore.Count()))
+
+	// 9. Return authoritative game state snapshot
+	r.GameState.Lock.Lock()
+	defer r.GameState.Lock.Unlock()
+
+	return s.Response(map[string]interface{}{
+		"success":       true,
+		"room_id":       roomID,
+		"seed":          r.Seed,
+		"snapshot":      r.GameState,
+		"missed_events": []interface{}{},
+	})
+}
+
+// min returns the smaller of two integers (polyfill for Go < 1.21 if needed).
+// Remove this if your Go version already has the builtin.
+// func min(a, b int) int { if a < b { return a }; return b }

@@ -28,9 +28,15 @@ func _ready() -> void:
 	flashTimer.start()
 	fuseTimer.start()
 
+var is_exploded: bool = false
+
 # 执行爆炸主逻辑
 func explode() -> void:
-	flashTimer.stop()
+	if is_exploded: return
+	is_exploded = true
+	if is_instance_valid(flashTimer): flashTimer.stop()
+	if is_instance_valid(fuseTimer): fuseTimer.stop()
+	
 	var centerCell: Vector2i = wallLayer.local_to_map(wallLayer.to_local(global_position))
 	spawnExplosionCenter(centerCell)
 

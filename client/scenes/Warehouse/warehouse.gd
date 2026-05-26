@@ -24,7 +24,7 @@ func _setup_tabs() -> void:
 				child.pressed.connect(_on_tab_pressed.bind(tab_categories[idx]))
 
 func _refresh_ui() -> void:
-	coinsLabel.text = "💰 %s" % _format_number(GlobalPlayerData.coins)
+	coinsLabel.text = "%s" % _format_number(GlobalPlayerData.coins)
 	itemCountLabel.text = "%d 件物资" % GlobalPlayerData.owned_items.size()
 	_update_grid()
 	_update_filter_styles()

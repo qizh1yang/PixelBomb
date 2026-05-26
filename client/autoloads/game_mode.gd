@@ -98,8 +98,11 @@ func _get_references_from_stage() -> void:
 
 func _connectNetwork() -> void:
 	var net = get_node_or_null("/root/NetworkManager")
-	if net and not net.message_received.is_connected(_onNetworkMessage):
-		net.message_received.connect(_onNetworkMessage)
+	if net:
+		if not net.message_received.is_connected(_onNetworkMessage):
+			net.message_received.connect(_onNetworkMessage)
+		if net.has_signal("game_state_resumed") and not net.game_state_resumed.is_connected(_on_game_state_resumed):
+			net.game_state_resumed.connect(_on_game_state_resumed)
 
 func cleanup_game() -> void:
 	is_game_active = false
@@ -111,8 +114,11 @@ func cleanup_game() -> void:
 	gameTimeRemaining = 300.0
 	evacTriggered = false
 	var net = get_node_or_null("/root/NetworkManager")
-	if net and net.message_received.is_connected(_onNetworkMessage):
-		net.message_received.disconnect(_onNetworkMessage)
+	if net:
+		if net.message_received.is_connected(_onNetworkMessage):
+			net.message_received.disconnect(_onNetworkMessage)
+		if net.has_signal("game_state_resumed") and net.game_state_resumed.is_connected(_on_game_state_resumed):
+			net.game_state_resumed.disconnect(_on_game_state_resumed)
 	if is_instance_valid(game_stage):
 		game_stage.queue_free()
 	game_stage = null; map_instance = null; wall_layer = null; hud = null; camera = null
@@ -227,11 +233,18 @@ func _setupHudPlayerCards() -> void:
 		if not is_instance_valid(p): continue
 		var peerId: int = int(pid) if pid.is_valid_int() else 0
 		var pname: String = p.get("player_name") if p.get("player_name") != null else ("玩家%d" % (idx + 1))
+		
+		var char_idx = p.get("char_index") if p.get("char_index") != null else 0
+		var avatar_texture = null
+		var avatar_path = "res://prefabs/Players/player%d/res/Faceset.png" % (char_idx + 1)
+		if ResourceLoader.exists(avatar_path):
+			avatar_texture = load(avatar_path)
+			
 		player_list.append({
 			"peer_id":    peerId,
 			"name":       pname,
 			"player_idx": idx,
-			"avatar":     null
+			"avatar":     avatar_texture
 		})
 		idx += 1
 	hud.setup_players(player_list)
@@ -240,7 +253,7 @@ func _createPlayer(id: String, pos: Vector2, charIdx: int, pname: String, isLoca
 	var char_res = CharacterRegistry.get_character_by_index(charIdx)
 	var p: Node = CharacterFactory.create_character(char_res)
 	if not p: return null
-	p.name = str(id); p.isLocal = isLocal; p.network_id = id; p.player_name = pname
+	p.name = str(id); p.isLocal = isLocal; p.network_id = id; p.player_name = pname; p.char_index = charIdx
 	p.global_position = pos
 	if not isLocal: p.target_pos = pos
 	if game_stage:
@@ -366,6 +379,10 @@ func _onNetworkMessage(route: String, data: Variant) -> void:
 				var cell = Vector2i(data.get("x", 0), data.get("y", 0))
 				var radius = int(data.get("radius", 1))
 				players[ownerId].doSpawnBomb(cell, radius)
+		"onBombExploded":
+			var cell = Vector2i(data.get("x", 0), data.get("y", 0))
+			var radius = int(data.get("radius", 1))
+			_handleBombExplodedFromServer(cell, radius)
 		"onPlayerEvacuated":
 			var pid = NetworkManager.clean_id(data.get("id", ""))
 			if players.has(pid): players[pid].hide()
@@ -425,8 +442,9 @@ func _onNetworkMessage(route: String, data: Variant) -> void:
 					if p.has_method("apply_stats"):
 						p.apply_stats(stats)
 		"onTick":
-			# 处理服务器 Tick 同步...
-			pass
+			var rem_time = data.get("remaining_time", -1)
+			if rem_time != -1:
+				gameTimeRemaining = float(rem_time)
 
 # ── 核心结算逻辑 ──
 
@@ -621,3 +639,111 @@ func shake_camera(duration: float = 0.2, intensity: float = 4.0) -> void:
 		await get_tree().create_timer(0.02).timeout
 		timer += 0.02
 	camera.offset = original_offset
+
+
+func _handleBombExplodedFromServer(cell: Vector2i, radius: int) -> void:
+	if not wall_layer: return
+	var target_world_pos = wall_layer.to_global(wall_layer.map_to_local(cell))
+	
+	# Find any bomb near this position
+	var found_bomb = false
+	var bombs = get_tree().get_nodes_in_group("Bomb")
+	for bomb in bombs:
+		if is_instance_valid(bomb) and bomb is Bomb:
+			var bomb_cell = wall_layer.local_to_map(wall_layer.to_local(bomb.global_position))
+			if bomb_cell == cell:
+				# Trigger explosion immediately if not already done
+				if bomb.has_method("explode"):
+					bomb.explode()
+				found_bomb = true
+				break
+				
+	# If no bomb was found locally (e.g. lag or prediction mismatch), spawn the visual effect manually
+	if not found_bomb:
+		print("[SYNC] Bomb at cell %s exploded on server but not found locally. Spawning visual explosion." % str(cell))
+		var lp = get_local_player()
+		if lp and "bombScene" in lp and lp.bombScene:
+			var bomb = lp.bombScene.instantiate()
+			wall_layer.get_parent().add_child(bomb)
+			bomb.wallLayer = wall_layer
+			bomb.explosionLength = radius
+			bomb.limitUp = radius
+			bomb.limitDown = radius
+			bomb.limitLeft = radius
+			bomb.limitRight = radius
+			bomb.global_position = target_world_pos
+			if bomb.has_method("explode"):
+				bomb.explode()
+
+func _on_game_state_resumed(snapshot: Dictionary) -> void:
+	print("[GameMode] Seamless Reconnect caught authoritative game state snapshot! Re-syncing visual battlefield...")
+	
+	# 1. 恢复对局时间
+	var rem_time = snapshot.get("remaining_time", -1)
+	if rem_time != -1:
+		gameTimeRemaining = float(rem_time)
+		if is_instance_valid(hud) and hud.has_method("updateTime"):
+			hud.updateTime(max(0, gameTimeRemaining))
+			
+	# 2. 物理校准并重绘所有玩家的位置、生死状态
+	var snap_players = snapshot.get("players", {})
+	for pid in snap_players.keys():
+		var p_state = snap_players[pid]
+		if players.has(pid):
+			var p = players[pid]
+			if is_instance_valid(p):
+				p.global_position = Vector2(p_state.get("x", 0.0), p_state.get("y", 0.0))
+				if "target_pos" in p:
+					p.target_pos = p.global_position
+				
+				# 状态重置
+				p.isDead = p_state.get("is_dead", false)
+				if p.isDead and p.has_method("die"):
+					p.die()
+				elif not p.isDead:
+					p.show() # 如果断线前被清除隐藏，重连后重现
+				
+				# 属性同步
+				if p.has_method("apply_stats"):
+					p.apply_stats(p_state)
+		else:
+			# 如果该玩家之前本地不存在，动态为其补发创建 (防漏人)
+			var charIdx = int(p_state.get("char", 0))
+			var pname = p_state.get("name", "Player")
+			var isLocal = (pid == get_local_player_id())
+			var p = _createPlayer(pid, Vector2(p_state.get("x", 0.0), p_state.get("y", 0.0)), charIdx, pname, isLocal)
+			if p:
+				p.isDead = p_state.get("is_dead", false)
+				if p.isDead and p.has_method("die"):
+					p.die()
+
+	# 3. 清理并重新生成对局中所有的炸弹表现，防止因网络断开遗留残余炸弹引发视效错乱
+	var old_bombs = get_tree().get_nodes_in_group("Bomb")
+	for bomb in old_bombs:
+		if is_instance_valid(bomb):
+			bomb.queue_free()
+			
+	var snap_bombs = snapshot.get("bombs", {})
+	var lp = get_local_player()
+	for bid in snap_bombs.keys():
+		var b_state = snap_bombs[bid]
+		var b_owner = b_state.get("owner_id", "")
+		if players.has(b_owner) and is_instance_valid(players[b_owner]):
+			var cell = Vector2i(int(b_state.get("x", 0)), int(b_state.get("y", 0)))
+			var radius = int(b_state.get("radius", 1))
+			players[b_owner].doSpawnBomb(cell, radius)
+		elif lp and "bombScene" in lp and lp.bombScene:
+			# 安全备用：由本地玩家辅助生成表现
+			var bomb = lp.bombScene.instantiate()
+			wall_layer.get_parent().add_child(bomb)
+			bomb.wallLayer = wall_layer
+			bomb.explosionLength = int(b_state.get("radius", 1))
+			var cell = Vector2i(int(b_state.get("x", 0)), int(b_state.get("y", 0)))
+			bomb.global_position = wall_layer.to_global(wall_layer.map_to_local(cell))
+			
+	# 4. 强制隐藏或恢复断线重连监控的 UI
+	var conn_monitor = get_node_or_null("/root/ConnectionMonitor")
+	if conn_monitor and "statusPanel" in conn_monitor:
+		conn_monitor.statusPanel.visible = false
+
+	print("[GameMode] Battle state fully catchup and synchronized successfully.")

@@ -3,15 +3,20 @@
 [ext_resource type="Script" path="res://scenes/Lobby/lobby.gd" id="1_script"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.0509804, 0.105882, 0.164706, 1)
+bg_color = Color(0.1176, 0.1451, 0.1294, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar"]
-bg_color = Color(0, 0, 0, 0.25)
+bg_color = Color(0.1176, 0.1451, 0.1294, 1)
 border_width_bottom = 2
-border_color = Color(0.960784, 0.65098, 0.137255, 0.3)
+border_color = Color(0.2745, 0.3216, 0.2824, 0.7)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bottombar"]
+bg_color = Color(0.1176, 0.1451, 0.1294, 1)
+border_width_top = 2
+border_color = Color(0.2745, 0.3216, 0.2824, 0.7)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
-bg_color = Color(0.06, 0.10, 0.20, 0.88)
+bg_color = Color(0.1725, 0.2118, 0.1922, 1)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
@@ -20,7 +25,28 @@ border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.35, 0.60, 0.90, 0.3)
+border_color = Color(0.2745, 0.3216, 0.2824, 1)
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_main_btn"]
+bg_color = Color(0.7255, 0.4157, 0.3647, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sub_btn"]
+bg_color = Color(0.4863, 0.6235, 0.6902, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2745, 0.3216, 0.2824, 1)
 
 [node name="Lobby" type="Control"]
 layout_mode = 3
@@ -62,38 +88,39 @@ theme_override_constants/margin_right = 32
 [node name="HBox" type="HBoxContainer" parent="MainLayout/TopBar/Margin"]
 layout_mode = 2
 
-[node name="Logo" type="Label" parent="MainLayout/TopBar/Margin/HBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.960784, 0.65098, 0.137255, 1)
-theme_override_font_sizes/font_size = 36
-text = "浮岛劫掠：破壁者"
+		[node name="Logo" type="Label" parent="MainLayout/TopBar/Margin/HBox"]
+		layout_mode = 2
+		theme_override_colors/font_color = Color(0.7882, 0.6588, 0.4157, 1)
+		theme_override_font_sizes/font_size = 36
+		text = "浮岛探索：破壁者"
 
-[node name="Spacer" type="Control" parent="MainLayout/TopBar/Margin/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
+		[node name="Spacer" type="Control" parent="MainLayout/TopBar/Margin/HBox"]
+		layout_mode = 2
+		size_flags_horizontal = 3
 
-[node name="PlayerInfo" type="HBoxContainer" parent="MainLayout/TopBar/Margin/HBox"]
-layout_mode = 2
-theme_override_constants/separation = 20
+		[node name="PlayerInfo" type="HBoxContainer" parent="MainLayout/TopBar/Margin/HBox"]
+		layout_mode = 2
+		theme_override_constants/separation = 20
 
-[node name="CoinsLabel" type="Label" parent="MainLayout/TopBar/Margin/HBox/PlayerInfo"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.960784, 0.65098, 0.137255, 1)
-theme_override_font_sizes/font_size = 26
-text = "💰 12,500"
+		[node name="CoinsLabel" type="Label" parent="MainLayout/TopBar/Margin/HBox/PlayerInfo"]
+		unique_name_in_owner = true
+		layout_mode = 2
+		theme_override_colors/font_color = Color(0.9059, 0.8863, 0.8471, 1)
+		theme_override_font_sizes/font_size = 26
+		text = "12,500"
 
-[node name="PlayerName" type="Label" parent="MainLayout/TopBar/Margin/HBox/PlayerInfo"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 26
-text = "见习破壁者"
+		[node name="PlayerName" type="Label" parent="MainLayout/TopBar/Margin/HBox/PlayerInfo"]
+		unique_name_in_owner = true
+		layout_mode = 2
+		theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+		theme_override_font_sizes/font_size = 26
+		text = "见习探索者"
 
-[node name="StatusDot" type="ColorRect" parent="MainLayout/TopBar/Margin/HBox/PlayerInfo"]
-custom_minimum_size = Vector2(12, 12)
-layout_mode = 2
-size_flags_vertical = 4
-color = Color(0.290196, 0.870588, 0.501961, 1)
+		[node name="StatusDot" type="ColorRect" parent="MainLayout/TopBar/Margin/HBox/PlayerInfo"]
+		custom_minimum_size = Vector2(12, 12)
+		layout_mode = 2
+		size_flags_vertical = 4
+		color = Color(0.498, 0.6627, 0.4784, 1)
 
 [node name="Body" type="MarginContainer" parent="MainLayout"]
 layout_mode = 2
@@ -117,7 +144,7 @@ layout_mode = 2
 
 [node name="Title" type="Label" parent="MainLayout/Body/HBox/LeftCol/HeaderHBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.960784, 0.65098, 0.137255, 1)
+theme_override_colors/font_color = Color(0.7882, 0.6588, 0.4157, 1)
 theme_override_font_sizes/font_size = 32
 text = "任务公告板"
 
@@ -125,9 +152,9 @@ text = "任务公告板"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 10
-theme_override_colors/font_color = Color(1, 1, 1, 0.4)
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
 theme_override_font_sizes/font_size = 22
-text = "共 0 个空投任务"
+text = "共 0 个探索任务"
 
 [node name="Scroll" type="ScrollContainer" parent="MainLayout/Body/HBox/LeftCol"]
 layout_mode = 2
@@ -149,6 +176,8 @@ alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 64)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9059, 0.8863, 0.8471, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_sub_btn")
 theme_override_font_sizes/font_size = 24
 text = "刷新公告"
 
@@ -157,8 +186,9 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 72)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_main_btn")
 theme_override_font_sizes/font_size = 26
-text = "发起空投"
+text = "发起任务"
 
 [node name="RightCol" type="VBoxContainer" parent="MainLayout/Body/HBox"]
 custom_minimum_size = Vector2(400, 0)
@@ -185,19 +215,20 @@ alignment = 1
 custom_minimum_size = Vector2(160, 160)
 layout_mode = 2
 size_flags_horizontal = 4
-color = Color(1, 1, 1, 0.12)
+color = Color(0.9412, 0.902, 0.8235, 1)
 
 [node name="Name" type="Label" parent="MainLayout/Body/HBox/RightCol/PlayerCard/Margin/VBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9059, 0.8863, 0.8471, 1)
 theme_override_font_sizes/font_size = 28
 text = "破壁者"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="MainLayout/Body/HBox/RightCol/PlayerCard/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.5)
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
 theme_override_font_sizes/font_size = 22
-text = "见习破壁者"
+text = "见习探索者"
 horizontal_alignment = 1
 
 [node name="QuickEntires" type="VBoxContainer" parent="MainLayout/Body/HBox/RightCol"]
@@ -208,16 +239,19 @@ theme_override_constants/separation = 14
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.960784, 0.65098, 0.137255, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_main_btn")
 theme_override_font_sizes/font_size = 26
-text = "📦 整备中心"
+text = "整备中心"
 
 [node name="AtlasBtn" type="Button" parent="MainLayout/Body/HBox/RightCol/QuickEntires"]
 custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.3529, 0.3882, 0.3647, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_sub_btn")
 theme_override_font_sizes/font_size = 24
 disabled = true
-text = "角色图鉴"
+text = "探索图鉴"
 
 [node name="SystemInfo" type="VBoxContainer" parent="MainLayout/Body/HBox/RightCol"]
 layout_mode = 2
@@ -226,20 +260,20 @@ theme_override_constants/separation = 4
 
 [node name="ServerStatus" type="Label" parent="MainLayout/Body/HBox/RightCol/SystemInfo"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.4)
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
 theme_override_font_sizes/font_size = 18
-text = "服务器：沧溟海枢轴 [在线]"
+text = "服务器：探索战线中枢 [在线]"
 
 [node name="Version" type="Label" parent="MainLayout/Body/HBox/RightCol/SystemInfo"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.4)
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
 theme_override_font_sizes/font_size = 18
 text = "Ver 0.5.2 Demo"
 
 [node name="BottomBar" type="PanelContainer" parent="MainLayout"]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_topbar")
+theme_override_styles/panel = SubResource("StyleBoxFlat_bottombar")
 
 [node name="Margin" type="MarginContainer" parent="MainLayout/BottomBar"]
 layout_mode = 2
@@ -252,7 +286,7 @@ layout_mode = 2
 [node name="ConnStatus" type="Label" parent="MainLayout/BottomBar/Margin/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.290196, 0.870588, 0.501961, 1)
+theme_override_colors/font_color = Color(0.498, 0.6627, 0.4784, 1)
 theme_override_font_sizes/font_size = 18
 text = "● 已连接至沧溟海联合事务所"
 
@@ -262,7 +296,7 @@ size_flags_horizontal = 3
 
 [node name="LogoutBtn" type="Button" parent="MainLayout/BottomBar/Margin/HBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.4)
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
 theme_override_font_sizes/font_size = 18
 text = "退出登录"
 flat = true

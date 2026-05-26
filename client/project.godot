@@ -28,6 +28,8 @@ UIManager="*res://autoloads/ui_manager.gd"
 ConnectionMonitor="*res://ui/connection_monitor/connection_monitor.tscn"
 DevHUD="*res://ui/dev_hud/dev_hud.tscn"
 McpInteractionServer="*res://autoloads/mcp_interaction_server.gd"
+User="*res://autoloads/user.gd"
+InputManager="*res://autoloads/input_manager.gd"
 
 [debug]
 
@@ -39,10 +41,6 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-
-[gui]
-
-"#Customfontremoved:åæç¥ç.ttfmissing.UsingThemeDBfallbackfont.#Torestore,placea.ttffileinassets/fonts/anduncomment:#theme/custom_font"="res://assets/fonts/your_font.ttf"
 
 [input]
 

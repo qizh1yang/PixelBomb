@@ -110,34 +110,15 @@ func _ready() -> void:
 			if child.name in ["LeftSpacer", "RightSpacer", "MidSpacer", "MidGap"]:
 				child.queue_free()
 				
-		# 1. 插入最左侧弹性对齐 Spacer
-		var leftSpacer = Control.new()
-		leftSpacer.name = "LeftSpacer"
-		mainContent.add_child(leftSpacer)
+		# 1. 采用 Stretch Ratio 机制拉伸撑满整个 1920x1080 屏幕
+		backpackPanel.custom_minimum_size = Vector2(300, 0)
+		warehousePanel.custom_minimum_size = Vector2(450, 0)
 		
-		# 2. 插入最右侧弹性对齐 Spacer
-		var rightSpacer = Control.new()
-		rightSpacer.name = "RightSpacer"
-		mainContent.add_child(rightSpacer)
+		backpackPanel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		warehousePanel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		
-		# 3. 设置面板大小紧密贴合内部格子物理宽度，实现完美的右侧无留白
-		backpackPanel.custom_minimum_size = Vector2(568, 0)
-		warehousePanel.custom_minimum_size = Vector2(904, 0)
-		
-		# 4. 仅使用 custom_minimum_size 承载宽度，不要额外延伸填满
-		backpackPanel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		warehousePanel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		
-		# 5. 按照几何顺序重新排序子节点
-		mainContent.move_child(leftSpacer, 0)
-		mainContent.move_child(backpackPanel, 1)
-		if vsep:
-			mainContent.move_child(vsep, 2)
-			mainContent.move_child(warehousePanel, 3)
-			mainContent.move_child(rightSpacer, 4)
-		else:
-			mainContent.move_child(warehousePanel, 2)
-			mainContent.move_child(rightSpacer, 3)
+		backpackPanel.size_flags_stretch_ratio = 0.85
+		warehousePanel.size_flags_stretch_ratio = 1.35
 
 		# 6. 让两边的子网格在滚动区域中双向居中对齐，彻底消除边缘和下方死角留白
 		mainBackpack.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -199,21 +180,41 @@ func _ready() -> void:
 	# 排序按钮
 	sortBtn.pressed.connect(_on_sort_pressed)
 
-	# 动态创建并连接自动整理背包按钮
-	var bottom_hbox = get_node_or_null("BottomBar/BottomHBox")
-	if bottom_hbox:
+	# 动态创建并连接自动整理背包按钮（上提到随身背包面板右上角的 BHeader 中）
+	var b_header = get_node_or_null("MainContent/BackpackPanel/BVBox/BHeader")
+	if b_header:
 		var auto_sort_btn = Button.new()
 		auto_sort_btn.name = "AutoSortBtn"
-		auto_sort_btn.text = "自动整理背包"
-		auto_sort_btn.custom_minimum_size = Vector2(200, 52) # 设为统一的 52 高度，确保对称
-		var clear_btn = bottom_hbox.get_node_or_null("ClearBtn")
-		if clear_btn:
-			auto_sort_btn.theme = clear_btn.theme
-			for mode in ["normal", "hover", "pressed"]:
-				var style = clear_btn.get_theme_stylebox(mode)
-				if style: auto_sort_btn.add_theme_stylebox_override(mode, style)
-		bottom_hbox.add_child(auto_sort_btn)
-		bottom_hbox.move_child(auto_sort_btn, 1) # 排在 ClearBtn (0) 的右侧
+		auto_sort_btn.text = " 整理背包 "
+		auto_sort_btn.custom_minimum_size = Vector2(100, 36) # 战术精扁小尺寸
+		
+		# 扁平化战术风格 StyleBox
+		var style_normal = StyleBoxFlat.new()
+		style_normal.bg_color = Color(0.4863, 0.6235, 0.6902, 0.15) # 极弱雾蓝半透明
+		style_normal.border_width_left = 1
+		style_normal.border_width_top = 1
+		style_normal.border_width_right = 1
+		style_normal.border_width_bottom = 1
+		style_normal.border_color = Color(0.4863, 0.6235, 0.6902, 0.5)
+		style_normal.corner_radius_top_left = 4
+		style_normal.corner_radius_top_right = 4
+		style_normal.corner_radius_bottom_right = 4
+		style_normal.corner_radius_bottom_left = 4
+		
+		var style_hover = style_normal.duplicate()
+		style_hover.bg_color = Color(0.4863, 0.6235, 0.6902, 0.35)
+		style_hover.border_color = Color(0.7882, 0.6588, 0.4157, 0.8) # 悬停亮金
+		
+		auto_sort_btn.add_theme_stylebox_override("normal", style_normal)
+		auto_sort_btn.add_theme_stylebox_override("hover", style_hover)
+		auto_sort_btn.add_theme_stylebox_override("pressed", style_normal)
+		auto_sort_btn.add_theme_color_override("font_color", Color(0.7216, 0.698, 0.6549, 1)) # 次文字次文字浅卡其灰
+		auto_sort_btn.add_theme_color_override("font_hover_color", Color(0.7882, 0.6588, 0.4157, 1)) # 悬浮变金
+		auto_sort_btn.add_theme_font_size_override("font_size", 16)
+		
+		b_header.add_child(auto_sort_btn)
+		# 排在最右边
+		b_header.move_child(auto_sort_btn, b_header.get_child_count() - 1)
 		auto_sort_btn.pressed.connect(_on_auto_sort_backpack_pressed)
 
 	# 战备方案按钮 (暂时禁止使用，置灰)
@@ -252,6 +253,7 @@ func _ready() -> void:
 							sub_child.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	# 4. 整理底部栏对齐，隐藏 Spacer4，并垂直居中所有子节点
+	var bottom_hbox = get_node_or_null("BottomBar/BottomHBox")
 	if bottom_hbox:
 		var spacer4 = bottom_hbox.get_node_or_null("Spacer4")
 		if spacer4:
@@ -265,35 +267,39 @@ func _ready() -> void:
 	var tabs = [tabAll, tabBomb, tabSpeed, tabRange, tabSpecial]
 	for btn in tabs:
 		if btn:
-			btn.custom_minimum_size = Vector2(140, 44)
+			btn.custom_minimum_size = Vector2(110, 36)
+			btn.add_theme_font_size_override("font_size", 16)
 			
-	# 6. 美化排序按钮，使其与普通分类标签产生显著视觉区隔
+	# 6. 美化排序按钮，使其与普通分类标签产生显著视觉区隔（森林雾蓝色系）
 	var sort_normal = StyleBoxFlat.new()
-	sort_normal.bg_color = Color("#0f2035a0") # 极深蓝半透明
+	sort_normal.bg_color = Color(0.4863, 0.6235, 0.6902, 0.2) # 雾蓝半透明
 	sort_normal.border_width_left = 1
 	sort_normal.border_width_top = 1
 	sort_normal.border_width_right = 1
 	sort_normal.border_width_bottom = 1
-	sort_normal.border_color = Color("#00a3ffb0") # 霓虹科技蓝/青色半透明边框
+	sort_normal.border_color = Color(0.4863, 0.6235, 0.6902, 0.6) # 雾蓝描边
 	sort_normal.corner_radius_top_left = 6
 	sort_normal.corner_radius_top_right = 6
 	sort_normal.corner_radius_bottom_right = 6
 	sort_normal.corner_radius_bottom_left = 6
 	
 	var sort_hover = sort_normal.duplicate()
-	sort_hover.bg_color = Color("#142f4ca0")
-	sort_hover.border_color = Color("#00c3ffd0")
+	sort_hover.bg_color = Color(0.4863, 0.6235, 0.6902, 0.4)
+	sort_hover.border_color = Color(0.7882, 0.6588, 0.4157, 0.8) # 悬停描边变金黄
 	
 	var sort_pressed = sort_normal.duplicate()
-	sort_pressed.bg_color = Color("#0c1b2c")
-	sort_pressed.border_color = Color("#0070c0")
+	sort_pressed.bg_color = Color(0.4863, 0.6235, 0.6902, 0.6)
+	sort_pressed.border_color = Color(0.9059, 0.8863, 0.8471, 1)
 	
 	if sortBtn:
 		sortBtn.add_theme_stylebox_override("normal", sort_normal)
 		sortBtn.add_theme_stylebox_override("hover", sort_hover)
 		sortBtn.add_theme_stylebox_override("pressed", sort_pressed)
-		sortBtn.add_theme_color_override("font_color", Color("#00c3ff")) # 亮青色字体
-		sortBtn.custom_minimum_size = Vector2(150, 44)
+		sortBtn.add_theme_color_override("font_color", Color(0.4863, 0.6235, 0.6902, 1)) # 雾蓝字色
+		sortBtn.add_theme_color_override("font_hover_color", Color(0.7882, 0.6588, 0.4157, 1)) # 悬停金黄字色
+		sortBtn.add_theme_color_override("font_pressed_color", Color(0.9059, 0.8863, 0.8471, 1)) # 按钮暖米白
+		sortBtn.custom_minimum_size = Vector2(110, 36)
+		sortBtn.add_theme_font_size_override("font_size", 16)
 
 	# 初始化
 	_on_data_updated()
@@ -316,7 +322,7 @@ func _on_data_updated() -> void:
 func _refresh_ui() -> void:
 	# 更新金币
 	if coinLabel:
-		coinLabel.text = "💰   %s" % _format_number(GlobalPlayerData.coins)
+		coinLabel.text = "   %s" % _format_number(GlobalPlayerData.coins)
 
 	# 更新物品计数
 	if itemCountLabel:
@@ -334,7 +340,7 @@ func _refresh_ui() -> void:
 
 func _refresh_ui_silent() -> void:
 	if coinLabel:
-		coinLabel.text = "💰   %s" % _format_number(GlobalPlayerData.coins)
+		coinLabel.text = "   %s" % _format_number(GlobalPlayerData.coins)
 	if itemCountLabel:
 		itemCountLabel.text = "%d 件物资" % GlobalPlayerData.owned_items.size()
 	mainBackpack.updateBackpackStats()
@@ -384,7 +390,7 @@ func _update_stats_bar() -> void:
 			bTitle.text = "已装备 [ %d/30 ] (保险箱 [ %d/4 ])" % [main_count, spec_count]
 		else:
 			bTitle.text = "已装备 [ %d/30 ]" % main_count
-		bTitle.add_theme_font_size_override("font_size", 32)
+		bTitle.add_theme_font_size_override("font_size", 24)
 		
 		# 80% 黄色，95% 红色亮眼提示
 		var pct = float(main_count) / 30.0
@@ -393,14 +399,14 @@ func _update_stats_bar() -> void:
 		elif pct >= 0.8:
 			bTitle.add_theme_color_override("font_color", Color("#ffd700"))
 		else:
-			bTitle.add_theme_color_override("font_color", Color("#ffffff"))
+			bTitle.add_theme_color_override("font_color", Color("#C9A86A"))
 
 	# ── 物资仓库标题容量动态更新 ──
 	var wTitle = get_node_or_null("MainContent/WarehousePanel/WVBox/WHeader/WTitle")
 	var owned_count = GlobalPlayerData.owned_items.size()
 	if wTitle:
 		wTitle.text = "物资仓库 [ %d/96 ]" % owned_count
-		wTitle.add_theme_font_size_override("font_size", 32)
+		wTitle.add_theme_font_size_override("font_size", 24)
 		
 		# 80% 黄色，95% 红色亮眼提示
 		var pct = float(owned_count) / 96.0
@@ -409,7 +415,7 @@ func _update_stats_bar() -> void:
 		elif pct >= 0.8:
 			wTitle.add_theme_color_override("font_color", Color("#ffd700"))
 		else:
-			wTitle.add_theme_color_override("font_color", Color("#ffffff"))
+			wTitle.add_theme_color_override("font_color", Color("#C9A86A"))
 
 # ── 拖拽系统 (已在子网格中处理) ──
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
@@ -421,23 +427,23 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 func _update_stats_preview(bomb: int, radius: int, shield: int, speed: float, epic: bool, r_up: int, r_down: int, r_left: int, r_right: int) -> void:
 	if not bombStat: return
 	
-	# 💣 炸弹容量
+	# 炸弹容量
 	if bomb > 0:
-		bombStat.text = "💣   炸弹容量: 1 (+%d)" % bomb
-		bombStat.add_theme_color_override("font_color", Color("#00ff00"))
+		bombStat.text = "炸弹容量: 1 (+%d)" % bomb
+		bombStat.add_theme_color_override("font_color", Color("#7FA97A"))
 	else:
-		bombStat.text = "💣   炸弹容量: 1"
-		bombStat.add_theme_color_override("font_color", Color("#909090"))
+		bombStat.text = "炸弹容量: 1"
+		bombStat.add_theme_color_override("font_color", Color("#B8B2A7"))
 		
-	# 👟 移动速度
+	# 移动速度
 	if speed > 0:
-		speedStat.text = "👟   移动速度: 100%% (+%.0f%%)" % [speed * 100]
-		speedStat.add_theme_color_override("font_color", Color("#00ff00"))
+		speedStat.text = "移动速度: 100%% (+%.0f%%)" % [speed * 100]
+		speedStat.add_theme_color_override("font_color", Color("#7FA97A"))
 	else:
-		speedStat.text = "👟   移动速度: 100%"
-		speedStat.add_theme_color_override("font_color", Color("#909090"))
+		speedStat.text = "移动速度: 100%"
+		speedStat.add_theme_color_override("font_color", Color("#B8B2A7"))
 		
-	# 🔥 爆炸威力
+	# 爆炸威力
 	var range_parts = []
 	if radius > 0: range_parts.append("全 +%d" % radius)
 	if r_up > 0: range_parts.append("上 +%d" % r_up)
@@ -445,22 +451,22 @@ func _update_stats_preview(bomb: int, radius: int, shield: int, speed: float, ep
 	if r_left > 0: range_parts.append("左 +%d" % r_left)
 	if r_right > 0: range_parts.append("右 +%d" % r_right)
 	if range_parts.size() > 0:
-		radiusStat.text = "🔥   爆炸威力: 3 (%s)" % (" | ".join(range_parts))
-		radiusStat.add_theme_color_override("font_color", Color("#00ff00"))
+		radiusStat.text = "爆炸威力: 3 (%s)" % (" | ".join(range_parts))
+		radiusStat.add_theme_color_override("font_color", Color("#7FA97A"))
 	else:
-		radiusStat.text = "🔥   爆炸威力: 3"
-		radiusStat.add_theme_color_override("font_color", Color("#909090"))
+		radiusStat.text = "爆炸威力: 3"
+		radiusStat.add_theme_color_override("font_color", Color("#B8B2A7"))
 		
-	# 🛡️ 免死护盾
+	# 免死护盾
 	var total_shields = shield + (1 if epic else 0)
 	if total_shields > 0:
-		shieldStat.text = "🛡️   免死护盾: +%d" % total_shields
-		shieldStat.add_theme_color_override("font_color", Color("#00ff00"))
+		shieldStat.text = "免死护盾: +%d" % total_shields
+		shieldStat.add_theme_color_override("font_color", Color("#7FA97A"))
 	else:
-		shieldStat.text = "🛡️   免死护盾: 0"
-		shieldStat.add_theme_color_override("font_color", Color("#909090"))
+		shieldStat.text = "免死护盾: 0"
+		shieldStat.add_theme_color_override("font_color", Color("#B8B2A7"))
 		
-	# 📦 背包载重
+	# 背包载重
 	var main_count = 0
 	var processed = []
 	# [AI MODIFY]
@@ -496,15 +502,15 @@ func _update_stats_preview(bomb: int, radius: int, shield: int, speed: float, ep
 				
 	var pct = roundi(float(main_count) / 30.0 * 100.0)
 	if spec_count > 0:
-		loadStat.text = "📦   背包载重: %d / 30 格 (%d%%) [ 保险箱: %d / 4 格 ]" % [main_count, pct, spec_count]
+		loadStat.text = "背包载重: %d / 30 格 (%d%%) [ 保险箱: %d / 4 格 ]" % [main_count, pct, spec_count]
 	else:
-		loadStat.text = "📦   背包载重: %d / 30 格 (%d%%)" % [main_count, pct]
+		loadStat.text = "背包载重: %d / 30 格 (%d%%)" % [main_count, pct]
 	if pct >= 95:
 		loadStat.add_theme_color_override("font_color", Color("#ff4444"))
 	elif pct >= 80:
 		loadStat.add_theme_color_override("font_color", Color("#ffd700"))
 	else:
-		loadStat.add_theme_color_override("font_color", Color("#909090"))
+		loadStat.add_theme_color_override("font_color", Color("#B8B2A7"))
 
 # ══════════════════════════════════════
 # 仓库物品列表渲染
@@ -628,16 +634,17 @@ func _update_filter_styles() -> void:
 		var is_active = (categories[i] == current_category)
 		
 		# 强制保持 uniform 大小，保证文本不拥挤
-		btn.custom_minimum_size = Vector2(140, 44)
+		btn.custom_minimum_size = Vector2(110, 36)
+		btn.add_theme_font_size_override("font_size", 16)
 		
 		if is_active:
-			btn.add_theme_color_override("font_color", Color(0.2, 0.15, 0.05, 1))
-			btn.add_theme_color_override("font_hover_color", Color(0.2, 0.15, 0.05, 1))
-			btn.add_theme_color_override("font_pressed_color", Color(0.2, 0.15, 0.05, 1))
+			btn.add_theme_color_override("font_color", Color(0.1176, 0.1451, 0.1294, 1)) # 森林深背景色
+			btn.add_theme_color_override("font_hover_color", Color(0.1176, 0.1451, 0.1294, 1))
+			btn.add_theme_color_override("font_pressed_color", Color(0.1176, 0.1451, 0.1294, 1))
 			
-			# 激活样式：高贵尊奢金黄
+			# 激活样式：探险金
 			var style = StyleBoxFlat.new()
-			style.bg_color = Color(0.831373, 0.686275, 0.215686, 0.9)
+			style.bg_color = Color(0.7882, 0.6588, 0.4157, 0.9)
 			style.corner_radius_top_left = 6
 			style.corner_radius_top_right = 6
 			style.corner_radius_bottom_right = 6
@@ -647,14 +654,14 @@ func _update_filter_styles() -> void:
 			btn.add_theme_stylebox_override("hover", style)
 			btn.add_theme_stylebox_override("pressed", style)
 		else:
-			btn.add_theme_color_override("font_color", Color(0.549, 0.647, 0.788, 1))
-			btn.add_theme_color_override("font_hover_color", Color(0.75, 0.82, 0.93, 1))
-			btn.add_theme_color_override("font_pressed_color", Color(0.549, 0.647, 0.788, 1))
+			btn.add_theme_color_override("font_color", Color(0.7216, 0.698, 0.6549, 1)) # 次文字色浅卡其灰
+			btn.add_theme_color_override("font_hover_color", Color(0.7882, 0.6588, 0.4157, 1)) # 悬停变探险金
+			btn.add_theme_color_override("font_pressed_color", Color(0.7216, 0.698, 0.6549, 1))
 			
-			# 普通样式：深海战术蓝背景，半透明科技感灰蓝边框
+			# 普通样式：苔藓灰半透明背景与描边
 			var style = StyleBoxFlat.new()
-			style.bg_color = Color(0.075, 0.118, 0.196, 0.6)
-			style.border_color = Color(0.227, 0.294, 0.423, 0.4)
+			style.bg_color = Color(0.2745, 0.3216, 0.2824, 0.6)
+			style.border_color = Color(0.2745, 0.3216, 0.2824, 0.4)
 			style.set_border_width_all(1)
 			style.corner_radius_top_left = 6
 			style.corner_radius_top_right = 6
@@ -662,8 +669,8 @@ func _update_filter_styles() -> void:
 			style.corner_radius_bottom_left = 6
 			
 			var hover_style = style.duplicate()
-			hover_style.bg_color = Color(0.12, 0.18, 0.28, 0.7)
-			hover_style.border_color = Color(0.3, 0.38, 0.52, 0.6)
+			hover_style.bg_color = Color(0.2745, 0.3216, 0.2824, 0.85)
+			hover_style.border_color = Color(0.2745, 0.3216, 0.2824, 0.6)
 			
 			btn.add_theme_stylebox_override("normal", style)
 			btn.add_theme_stylebox_override("hover", hover_style)
@@ -809,7 +816,7 @@ func _on_warehouse_sell_requested(res: BackpackItemResource, path: String) -> vo
 	dialogConfirm.text = "确认出售"
 	dialogMsg.text = "确定出售「%s」？\n此操作不可撤销。" % res.item_name
 	if dialogPrice:
-		dialogPrice.text = "预计获得: 💰 %d 金币" % sell_price
+		dialogPrice.text = "预计获得: %d 金币" % sell_price
 		dialogPrice.show()
 	confirmDialog.visible = true
 
@@ -1202,22 +1209,4 @@ func _update_ui_scale(val: float) -> void:
 	self.position = (win_size - scaled_size) / 2.0
 
 func _update_layout_spacers() -> void:
-	var mainContent = %MainContent
-	if not mainContent: return
-	
-	var win_width = get_viewport_rect().size.x
-	# 两个紧密包裹面板的宽度 (568 + 904) + 16 (HBox 默认间距) = 1488px
-	var total_content_width = 568 + 904 + 16
-	var remaining = win_width - total_content_width
-	
-	# 将余下空间以 50px 偏移量分配给左右 Spacers，确保居中的同时整体向右偏移 50px
-	var left_width = max(0.0, (remaining / 2.0) + 50.0)
-	var right_width = max(0.0, (remaining / 2.0) - 50.0)
-	
-	var leftSpacer = mainContent.get_node_or_null("LeftSpacer")
-	if leftSpacer:
-		leftSpacer.custom_minimum_size = Vector2(left_width, 0)
-		
-	var rightSpacer = mainContent.get_node_or_null("RightSpacer")
-	if rightSpacer:
-		rightSpacer.custom_minimum_size = Vector2(right_width, 0)
+	pass

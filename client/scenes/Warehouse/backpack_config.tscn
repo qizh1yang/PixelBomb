@@ -4,87 +4,89 @@
 [ext_resource type="PackedScene" uid="uid://cb5c0353cly0y" path="res://prefabs/Backpack/warehouse_backpack.tscn" id="2_backpack"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.039, 0.055, 0.09, 1)
+bg_color = Color(0.1176, 0.1451, 0.1294, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar"]
-bg_color = Color(0.059, 0.082, 0.125, 1)
+bg_color = Color(0.1176, 0.1451, 0.1294, 1)
 border_width_bottom = 2
-border_color = Color(0.118, 0.227, 0.373, 1)
+border_color = Color(0.2745, 0.3216, 0.2824, 0.7)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_normal"]
-bg_color = Color(0.075, 0.118, 0.196, 0.6)
+bg_color = Color(0.2745, 0.3216, 0.2824, 0.6)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.227, 0.294, 0.423, 0.4)
+border_color = Color(0.2745, 0.3216, 0.2824, 0.4)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gold_btn"]
-bg_color = Color(0, 0.47, 0.83, 1)
+bg_color = Color(0.7255, 0.4157, 0.3647, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_btn"]
-bg_color = Color(0.129, 0.129, 0.129, 1)
+bg_color = Color(0.2745, 0.3216, 0.2824, 0.6)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_hover"]
-bg_color = Color(0.898, 0.224, 0.208, 1)
+bg_color = Color(0.7255, 0.4157, 0.3647, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.059, 0.082, 0.125, 0.95)
+bg_color = Color(0.1725, 0.2118, 0.1922, 0.98)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.118, 0.227, 0.373, 0.6)
+border_color = Color(0.2745, 0.3216, 0.2824, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_separator"]
-bg_color = Color(0.118, 0.227, 0.373, 0.8)
+bg_color = Color(0.2745, 0.3216, 0.2824, 0.7)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_active"]
-bg_color = Color(0, 0.47, 0.83, 1)
+bg_color = Color(0.7255, 0.4157, 0.3647, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vsep"]
-bg_color = Color(0.118, 0.227, 0.373, 0.8)
+bg_color = Color(0.2745, 0.3216, 0.2824, 0.7)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stats"]
-bg_color = Color(0.067, 0.114, 0.188, 0.8)
+bg_color = Color(0.1176, 0.1451, 0.1294, 0.9)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.961, 0.651, 0.137, 0.1)
+border_color = Color(0.2745, 0.3216, 0.2824, 0.5)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bottombar"]
-bg_color = Color(0.075, 0.133, 0.208, 1)
+bg_color = Color(0.1176, 0.1451, 0.1294, 1)
 border_width_top = 1
-border_color = Color(0.118, 0.227, 0.373, 0.6)
+border_color = Color(0.2745, 0.3216, 0.2824, 0.7)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_outline_btn"]
 bg_color = Color(0, 0, 0, 0)
@@ -92,23 +94,25 @@ border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.451, 0.451, 0.451, 0.5)
+border_color = Color(0.2745, 0.3216, 0.2824, 0.8)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confirm_dialog"]
-bg_color = Color(0.09, 0.15, 0.255, 0.97)
+bg_color = Color(0.1725, 0.2118, 0.1922, 0.98)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.961, 0.651, 0.137, 0.3)
+border_color = Color(0.2745, 0.3216, 0.2824, 0.8)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_danger_btn"]
 bg_color = Color(0, 0, 0, 0)
@@ -116,7 +120,7 @@ border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.91, 0.345, 0.039, 0.5)
+border_color = Color(0.7255, 0.4157, 0.3647, 0.8)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -145,7 +149,7 @@ unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 90.0
+offset_bottom = 74.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_topbar")
 
@@ -167,14 +171,14 @@ layout_mode = 2
 
 [node name="Title" type="Label" parent="TopBar/HBox/TitleBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.831373, 0.686275, 0.215686, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(0.7882, 0.6588, 0.4157, 1)
+theme_override_font_sizes/font_size = 30
 text = "战前战备"
 
 [node name="Subtitle" type="Label" parent="TopBar/HBox/TitleBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 16
 text = "整理随身装备，选好带什么上岛"
 
 [node name="Spacer1" type="Control" parent="TopBar/HBox"]
@@ -188,16 +192,16 @@ alignment = 1
 
 [node name="PresetLabel" type="Label" parent="TopBar/HBox/PresetBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.549, 0.647, 0.788, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.9059, 0.8863, 0.8471, 1)
+theme_override_font_sizes/font_size = 20
 text = "战备方案:"
 
 [node name="Preset1" type="Button" parent="TopBar/HBox/PresetBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(130, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.741, 0.741, 0.741, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_tab_normal")
 text = "方案一"
 
@@ -205,8 +209,8 @@ text = "方案一"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(130, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.741, 0.741, 0.741, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_tab_normal")
 text = "方案二"
 
@@ -214,8 +218,8 @@ text = "方案二"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(130, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.741, 0.741, 0.741, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_tab_normal")
 text = "方案三"
 
@@ -231,25 +235,25 @@ alignment = 2
 [node name="DiscardBtn" type="Button" parent="TopBar/HBox/RightBox"]
 custom_minimum_size = Vector2(140, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.549, 0.549, 0.549, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 20
 text = "返回大厅"
 flat = true
 
 [node name="ConfirmBtn" type="Button" parent="TopBar/HBox/RightBox"]
 custom_minimum_size = Vector2(160, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.051, 0.106, 0.165, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_gold_btn")
 text = "确认配备"
 
 [node name="CoinLabel" type="Label" parent="TopBar/HBox/RightBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.831373, 0.686275, 0.215686, 1)
-theme_override_font_sizes/font_size = 28
-text = "💰 12,500"
+theme_override_colors/font_color = Color(0.9059, 0.8863, 0.8471, 1)
+theme_override_font_sizes/font_size = 22
+text = "12,500"
 
 [node name="MainContent" type="HBoxContainer" parent="."]
 unique_name_in_owner = true
@@ -258,9 +262,9 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = 110.0
+offset_top = 94.0
 offset_right = -24.0
-offset_bottom = -100.0
+offset_bottom = -80.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 16
@@ -269,6 +273,7 @@ theme_override_constants/separation = 16
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.35
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="WVBox" type="VBoxContainer" parent="MainContent/WarehousePanel"]
@@ -291,8 +296,8 @@ theme_override_constants/separation = 12
 
 [node name="WTitle" type="Label" parent="MainContent/WarehousePanel/WVBox/WHeader"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.831373, 0.686275, 0.215686, 1)
-theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.7882, 0.6588, 0.4157, 1)
+theme_override_font_sizes/font_size = 24
 text = "物资仓库"
 
 [node name="Spacer" type="Control" parent="MainContent/WarehousePanel/WVBox/WHeader"]
@@ -302,8 +307,8 @@ size_flags_horizontal = 3
 [node name="ItemCount" type="Label" parent="MainContent/WarehousePanel/WVBox/WHeader"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.549, 0.647, 0.788, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 18
 text = "0 件物资"
 
 [node name="WSeparator" type="Panel" parent="MainContent/WarehousePanel/WVBox"]
@@ -316,46 +321,46 @@ theme_override_constants/separation = 8
 
 [node name="TabAll" type="Button" parent="MainContent/WarehousePanel/WVBox/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(130, 40)
+custom_minimum_size = Vector2(110, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.15, 0.05, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxFlat_tab_active")
 text = "全部"
 
 [node name="TabBomb" type="Button" parent="MainContent/WarehousePanel/WVBox/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(130, 40)
+custom_minimum_size = Vector2(110, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.549, 0.647, 0.788, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxFlat_tab_normal")
 text = "炸弹容量"
 
 [node name="TabSpeed" type="Button" parent="MainContent/WarehousePanel/WVBox/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(130, 40)
+custom_minimum_size = Vector2(110, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.549, 0.647, 0.788, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxFlat_tab_normal")
 text = "移动速度"
 
 [node name="TabRange" type="Button" parent="MainContent/WarehousePanel/WVBox/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(130, 40)
+custom_minimum_size = Vector2(110, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.549, 0.647, 0.788, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxFlat_tab_normal")
 text = "爆炸范围"
 
 [node name="TabSpecial" type="Button" parent="MainContent/WarehousePanel/WVBox/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(130, 40)
+custom_minimum_size = Vector2(110, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.549, 0.647, 0.788, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxFlat_tab_normal")
 text = "特殊道具"
 
@@ -365,10 +370,10 @@ size_flags_horizontal = 3
 
 [node name="SortBtn" type="Button" parent="MainContent/WarehousePanel/WVBox/FilterBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(140, 40)
+custom_minimum_size = Vector2(110, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.549, 0.647, 0.788, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxFlat_tab_normal")
 text = "排序"
 
@@ -394,6 +399,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_vsep")
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.85
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="BVBox" type="VBoxContainer" parent="MainContent/BackpackPanel"]
@@ -416,8 +422,8 @@ theme_override_constants/separation = 12
 
 [node name="BTitle" type="Label" parent="MainContent/BackpackPanel/BVBox/BHeader"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.831373, 0.686275, 0.215686, 1)
-theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.7882, 0.6588, 0.4157, 1)
+theme_override_font_sizes/font_size = 24
 text = "随身背包"
 
 [node name="Spacer" type="Control" parent="MainContent/BackpackPanel/BVBox/BHeader"]
@@ -426,13 +432,87 @@ size_flags_horizontal = 3
 
 [node name="Hint" type="Label" parent="MainContent/BackpackPanel/BVBox/BHeader"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
-theme_override_font_sizes/font_size = 22
-text = "从右侧选取物资装入背包 · 拖拽时按 R 可顺时针 90° 旋转"
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 16
+text = "右侧拖入背包 · 拖拽时按 R 键旋转"
 
 [node name="BSeparator" type="Panel" parent="MainContent/BackpackPanel/BVBox"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_separator")
+
+[node name="StatsPreview" type="Panel" parent="MainContent/BackpackPanel/BVBox"]
+custom_minimum_size = Vector2(0, 68)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_stats")
+
+[node name="StatsVBox" type="VBoxContainer" parent="MainContent/BackpackPanel/BVBox/StatsPreview"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 4.0
+offset_right = -12.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="StatsHBox" type="HBoxContainer" parent="MainContent/BackpackPanel/BVBox/StatsPreview/StatsVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="BombStat" type="Label" parent="MainContent/BackpackPanel/BVBox/StatsPreview/StatsVBox/StatsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 18
+text = "炸弹容量: 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SpeedStat" type="Label" parent="MainContent/BackpackPanel/BVBox/StatsPreview/StatsVBox/StatsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 18
+text = "移动速度: 100%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RadiusStat" type="Label" parent="MainContent/BackpackPanel/BVBox/StatsPreview/StatsVBox/StatsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 18
+text = "爆炸威力: 3"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ShieldStat" type="Label" parent="MainContent/BackpackPanel/BVBox/StatsPreview/StatsVBox/StatsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 18
+text = "免死护盾: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LoadStat" type="Label" parent="MainContent/BackpackPanel/BVBox/StatsPreview/StatsVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 16
+text = "背包载重: 0 / 30 格 (0%)"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="BackpackScroll" type="ScrollContainer" parent="MainContent/BackpackPanel/BVBox"]
 layout_mode = 2
@@ -444,76 +524,6 @@ layout_mode = 2
 ROWS = 5
 COLS = 6
 
-[node name="StatsPreview" type="Panel" parent="MainContent/BackpackPanel/BVBox"]
-custom_minimum_size = Vector2(0, 275)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_stats")
-
-[node name="StatsVBox" type="VBoxContainer" parent="MainContent/BackpackPanel/BVBox/StatsPreview"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 12.0
-offset_top = 8.0
-offset_right = -12.0
-offset_bottom = -8.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 6
-
-[node name="StatsTitle" type="Label" parent="MainContent/BackpackPanel/BVBox/StatsPreview/StatsVBox"]
-custom_minimum_size = Vector2(0, 24)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.831373, 0.686275, 0.215686, 1)
-theme_override_font_sizes/font_size = 26
-text = "战力评估"
-
-[node name="BombStat" type="Label" parent="MainContent/BackpackPanel/BVBox/StatsPreview/StatsVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
-theme_override_font_sizes/font_size = 26
-text = "💣   炸弹容量: 1"
-vertical_alignment = 1
-
-[node name="SpeedStat" type="Label" parent="MainContent/BackpackPanel/BVBox/StatsPreview/StatsVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
-theme_override_font_sizes/font_size = 26
-text = "👟   移动速度: 100%"
-vertical_alignment = 1
-
-[node name="RadiusStat" type="Label" parent="MainContent/BackpackPanel/BVBox/StatsPreview/StatsVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
-theme_override_font_sizes/font_size = 26
-text = "🔥   爆炸威力: 3"
-vertical_alignment = 1
-
-[node name="ShieldStat" type="Label" parent="MainContent/BackpackPanel/BVBox/StatsPreview/StatsVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
-theme_override_font_sizes/font_size = 26
-text = "🛡️   免死护盾: 0"
-vertical_alignment = 1
-
-[node name="LoadStat" type="Label" parent="MainContent/BackpackPanel/BVBox/StatsPreview/StatsVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
-theme_override_font_sizes/font_size = 26
-text = "📦   背包载重: 0 / 30 格 (0%)"
-vertical_alignment = 1
-
 [node name="BottomBar" type="Panel" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
@@ -521,7 +531,7 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -80.0
+offset_top = -60.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_bottombar")
@@ -542,8 +552,8 @@ theme_override_constants/separation = 16
 [node name="ClearBtn" type="Button" parent="BottomBar/BottomHBox"]
 custom_minimum_size = Vector2(200, 48)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.549, 0.549, 0.549, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_outline_btn")
 text = "一键清空背包"
 
@@ -553,8 +563,8 @@ size_flags_horizontal = 3
 
 [node name="BottomHint" type="Label" parent="BottomBar/BottomHBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 16
 text = "当前配置将于进入游戏时生效"
 
 [node name="Spacer4" type="Control" parent="BottomBar/BottomHBox"]
@@ -571,31 +581,31 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -280.0
-offset_top = -200.0
-offset_right = 280.0
-offset_bottom = 200.0
+offset_left = -220.0
+offset_top = -140.0
+offset_right = 220.0
+offset_bottom = 140.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_confirm_dialog")
 
 [node name="DialogVBox" type="VBoxContainer" parent="ConfirmDialog"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 alignment = 1
 
 [node name="DialogTitle" type="Label" parent="ConfirmDialog/DialogVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.831373, 0.686275, 0.215686, 1)
-theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(0.7255, 0.4157, 0.3647, 1)
+theme_override_font_sizes/font_size = 24
 text = "确认出售物资"
 horizontal_alignment = 1
 
 [node name="DialogMsg" type="Label" parent="ConfirmDialog/DialogVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.741, 0.741, 0.741, 1)
-theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.9059, 0.8863, 0.8471, 1)
+theme_override_font_sizes/font_size = 18
 text = "确定出售「物品」？
 此操作不可撤销。"
 horizontal_alignment = 1
@@ -604,9 +614,9 @@ autowrap_mode = 2
 [node name="DialogPrice" type="Label" parent="ConfirmDialog/DialogVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.831373, 0.686275, 0.215686, 1)
-theme_override_font_sizes/font_size = 26
-text = "预计获得: 💰 0 金币"
+theme_override_colors/font_color = Color(0.7882, 0.6588, 0.4157, 1)
+theme_override_font_sizes/font_size = 18
+text = "预计获得: 0 金币"
 horizontal_alignment = 1
 
 [node name="DialogBtnRow" type="HBoxContainer" parent="ConfirmDialog/DialogVBox"]
@@ -615,18 +625,18 @@ theme_override_constants/separation = 12
 alignment = 1
 
 [node name="DialogCancel" type="Button" parent="ConfirmDialog/DialogVBox/DialogBtnRow"]
-custom_minimum_size = Vector2(160, 48)
+custom_minimum_size = Vector2(140, 40)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.549, 0.647, 0.788, 1)
-theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_outline_btn")
 text = "取消"
 
 [node name="DialogConfirm" type="Button" parent="ConfirmDialog/DialogVBox/DialogBtnRow"]
-custom_minimum_size = Vector2(160, 48)
+custom_minimum_size = Vector2(140, 40)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.345, 0.039, 1)
-theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.9059, 0.8863, 0.8471, 1)
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_danger_btn")
 text = "确认出售"
 
@@ -640,17 +650,17 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -260.0
-offset_top = -300.0
-offset_right = 260.0
-offset_bottom = 300.0
+offset_left = -200.0
+offset_top = -230.0
+offset_right = 200.0
+offset_bottom = 230.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_confirm_dialog")
 
 [node name="VBox" type="VBoxContainer" parent="DetailDialog"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 10
 
 [node name="Header" type="HBoxContainer" parent="DetailDialog/VBox"]
 layout_mode = 2
@@ -663,13 +673,13 @@ size_flags_horizontal = 3
 unique_name_in_owner = true
 custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
 text = "×"
 flat = true
 
 [node name="DetailIcon" type="TextureRect" parent="DetailDialog/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 160)
+custom_minimum_size = Vector2(110, 110)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
@@ -677,21 +687,25 @@ stretch_mode = 5
 [node name="DetailName" type="Label" parent="DetailDialog/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(0.7882, 0.6588, 0.4157, 1)
+theme_override_font_sizes/font_size = 26
+text = ""
 horizontal_alignment = 1
 
 [node name="DetailType" type="Label" parent="DetailDialog/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
+theme_override_font_sizes/font_size = 18
+text = ""
 horizontal_alignment = 1
 
 [node name="DetailDesc" type="Label" parent="DetailDialog/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.96, 0.96, 0.98, 1)
+theme_override_font_sizes/font_size = 18
+text = ""
 horizontal_alignment = 1
 autowrap_mode = 2
 
@@ -706,9 +720,9 @@ alignment = 1
 
 [node name="DetailPackBtn" type="Button" parent="DetailDialog/VBox/DetailBtnRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 52)
+custom_minimum_size = Vector2(140, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.051, 0.106, 0.165, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_gold_btn")
 text = "装入背包"
 
@@ -716,7 +730,7 @@ text = "装入背包"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.345, 0.039, 1)
+theme_override_colors/font_color = Color(0.7255, 0.4157, 0.3647, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_danger_btn")
 text = "售出"
 
@@ -736,16 +750,16 @@ theme_override_constants/separation = 4
 [node name="CtxDetail" type="Button" parent="ContextMenu/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
 text = "查看详情"
 flat = true
 
 [node name="CtxSell" type="Button" parent="ContextMenu/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.345, 0.039, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.902, 0.2902, 0.098, 1)
+theme_override_font_sizes/font_size = 20
 text = "出售"
 flat = true
 

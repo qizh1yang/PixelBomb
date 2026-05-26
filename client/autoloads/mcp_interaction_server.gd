@@ -18,6 +18,11 @@ func _ready() -> void:
 	# Ensure MCP server keeps processing even when game is paused
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_init_key_map()
+	
+	if OS.has_feature("web"):
+		print("McpInteractionServer: Disabled on HTML5/Web platform (browser sandbox restricts TCP listen).")
+		return
+		
 	_server = TCPServer.new()
 	var listen_port: int = PORT
 	var err: int = -1

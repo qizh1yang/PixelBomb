@@ -48,6 +48,7 @@ var velocityInput: Vector2 = Vector2.ZERO
 var isLocal: bool = true
 var player_name: String = "Player"
 var network_id: String = ""
+var char_index: int = 0
 var target_pos: Vector2 = Vector2.ZERO
 var remote_state: String = "idle"
 var remote_direction: String = "down"
@@ -72,6 +73,13 @@ func _ready() -> void:
 	# 核心修复：不能对非本地玩家设置 set_physics_process(false)，因为会阻止非本地玩家在 _physics_process 中运行位置插值同步(lerp)逻辑
 	_setupEvacBar()
 	_setupShieldHalo()
+
+	# 战术物理加固：设置玩家之间物理碰撞例外，使其像幽灵般穿透，且不影响道具检测及与地图、炸弹的正常碰撞
+	var players = get_tree().get_nodes_in_group("Player")
+	for p in players:
+		if p != self and p is PhysicsBody2D:
+			add_collision_exception_with(p)
+			p.add_collision_exception_with(self)
 
 func _setupEvacBar() -> void:
 	# 使用标准 ProgressBar，无需贴图即可显示
@@ -358,10 +366,20 @@ func doSpawnBomb(cell: Vector2i, radius: int) -> void:
 	# 核心逻辑：炸弹的最终威力受限于当前威力和每个方向的上限
 	# explosionRadiusCap 是全局基础上限（通常为 1 + 全局加成）
 	bomb.explosionLength = radius 
-	bomb.limitUp = explosionRadiusCap + radiusUpCap
-	bomb.limitDown = explosionRadiusCap + radiusDownCap
-	bomb.limitLeft = explosionRadiusCap + radiusLeftCap
-	bomb.limitRight = explosionRadiusCap + radiusRightCap
+	
+	# 联网模式下，为保证画面与服务器权威判定高度一致，直接使用服务器计算的 radius 作为各方向上限
+	var net = get_node_or_null("/root/NetworkManager")
+	var gm = get_node_or_null("/root/GameMode")
+	if net and gm and not gm.is_offline_mode:
+		bomb.limitUp = radius
+		bomb.limitDown = radius
+		bomb.limitLeft = radius
+		bomb.limitRight = radius
+	else:
+		bomb.limitUp = explosionRadiusCap + radiusUpCap
+		bomb.limitDown = explosionRadiusCap + radiusDownCap
+		bomb.limitLeft = explosionRadiusCap + radiusLeftCap
+		bomb.limitRight = explosionRadiusCap + radiusRightCap
 	
 	bomb.global_position = wlayer.to_global(wlayer.map_to_local(cell))
 	activeBombs += 1
@@ -465,6 +483,44 @@ func apply_stats(stats: Dictionary) -> void:
 	speedCap = float(stats.get("speed_cap", 95.0))
 	maxShieldsCap = int(stats.get("shield_cap", 1))
 	hasPersistentShield = bool(stats.get("has_persistent_shield", false))
+	
+	# 如果是本地玩家，我们需要加上本地背包中已装备物品的属性上限加成
+	if isLocal:
+		var backpack_node = get_tree().get_first_node_in_group("Backpack")
+		if is_instance_valid(backpack_node) and backpack_node.has_method("get_all_item_resources"):
+			var items = backpack_node.get_all_item_resources()
+			var bomb_boost = 0
+			var radius_boost = 0
+			var shield_boost = 0
+			var speed_boost = 0.0
+			var epic_shield = false
+			var r_up = 0
+			var r_down = 0
+			var r_left = 0
+			var r_right = 0
+			for res in items:
+				if res:
+					bomb_boost += res.bomb_cap_boost
+					radius_boost += res.radius_cap_boost
+					shield_boost += res.shield_cap_boost
+					speed_boost += res.speed_cap_boost
+					r_up += res.radius_up_boost
+					r_down += res.radius_down_boost
+					r_left += res.radius_left_boost
+					r_right += res.radius_right_boost
+					if res.has_persistent_shield:
+						epic_shield = true
+			
+			maxBombsCap += bomb_boost
+			explosionRadiusCap += radius_boost
+			radiusUpCap = r_up
+			radiusDownCap = r_down
+			radiusLeftCap = r_left
+			radiusRightCap = r_right
+			maxShieldsCap += shield_boost
+			speedCap += speed_boost
+			if epic_shield:
+				hasPersistentShield = true
 	
 	# 如果广播中含有 current 字段，则优先使用服务端下发的局内权威当前属性值进行强对齐，实现多端完全同步
 	if stats.has("bomb_current"):

@@ -4,6 +4,38 @@ extends Node
 enum PacketType { HANDSHAKE = 1, HANDSHAKE_ACK = 2, HEARTBEAT = 3, DATA = 4, KICK = 5 }
 enum MsgType { REQUEST = 0, NOTIFY = 1, RESPONSE = 2, PUSH = 3 }
 
+# ── [NEW] 连接状态机 ──
+enum ConnectionState {
+	DISCONNECTED,
+	CONNECTING,
+	CONNECTED,
+	RECONNECTING,
+	RESYNCING, # 废弃旧用，统合在 ConnectionRecoveryState 中
+	RESUMING,
+	FAILED
+}
+var connection_state: int = ConnectionState.DISCONNECTED
+
+# ── [NEW] 全局重连恢复状态机与属性监听 ──
+enum ConnectionRecoveryState {
+	NORMAL,
+	LOST,
+	RECONNECTING,
+	REAUTHENTICATING,
+	RESYNCING,
+	FAILED
+}
+var recovery_state: int = ConnectionRecoveryState.NORMAL:
+	set(val):
+		if recovery_state != val:
+			recovery_state = val
+			recovery_state_changed.emit(recovery_state)
+
+signal recovery_state_changed(new_state: int)
+
+func get_recovery_state() -> int:
+	return recovery_state
+
 ## [NET] 日志工具
 func net_log(msg: String) -> void:
 	if OS.is_debug_build(): print("[NANO-NET] " + msg)
@@ -22,6 +54,7 @@ signal host_updated(is_host: bool, host_id: String)
 signal game_started()
 signal room_state_updated(room_players: Array)
 signal room_join_failed(message: String)
+signal game_state_resumed(snapshot: Dictionary) # [NEW] 墓碑恢复成功，广播权威快照
 
 var socket := WebSocketPeer.new()
 var http_client: HTTPRequest = null
@@ -45,6 +78,14 @@ var selected_char_index: int = 0
 var last_msg_id: int = 0
 var pending_requests: Dictionary = {} # ID -> Route
 
+# ── [NEW] 断线重连与心跳配置 ──
+var reconnect_controller: Node = null
+var last_ack_seq: int = 0
+var last_send_heartbeat_time: float = 0.0
+var last_recv_packet_time: float = 0.0
+
+const RESUME_FILE = "user://resume_session.json"
+
 ## 安全且鲁棒地清洗用户ID，将其规范化为纯整数字符串，去除 JSON 解析可能引入的 .0 浮点后缀
 func clean_id(val: Variant) -> String:
 	if val == null:
@@ -59,25 +100,129 @@ func clean_id(val: Variant) -> String:
 func _ready() -> void:
 	http_client = HTTPRequest.new()
 	add_child(http_client)
+	
+	# [NEW] 实例化重连控制器并挂载
+	var ReconnectControllerScript = load("res://utils/network/reconnect_controller.gd")
+	reconnect_controller = Node.new()
+	reconnect_controller.set_script(ReconnectControllerScript)
+	reconnect_controller.name = "ReconnectController"
+	add_child(reconnect_controller)
+	
+	# 连接重连控制器信号
+	reconnect_controller.attempt_failed.connect(_on_reconnect_attempt_failed)
+	reconnect_controller.reconnect_failed.connect(_on_reconnect_failed)
+	
+	# [NEW] 实例化 SessionRecovery 控制器并挂载
+	var SessionRecoveryScript = load("res://utils/network/session_recovery.gd")
+	var session_recovery = Node.new()
+	session_recovery.set_script(SessionRecoveryScript)
+	session_recovery.name = "SessionRecovery"
+	add_child(session_recovery)
+	
+	# 连接 SessionRecovery 信号
+	session_recovery.recovery_complete.connect(_on_session_recovery_complete)
+	session_recovery.recovery_failed.connect(_on_session_recovery_failed)
+	
 	net_log("Nano NetworkManager ready.")
+
+func _notification(what: int) -> void:
+	# Graceful shutdown: send Room.Leave before closing to avoid creating
+	# a tombstone on the server for a normal client exit.
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		net_log("Window close requested — sending graceful Room.Leave...")
+		if current_room != "" and is_connected_to_host:
+			notify("Room.Leave", {})
+			OS.delay_msec(100)
+		socket.close()
+		return
+
+	# 桌面端（Windows/macOS/Linux）在失焦时不断开连接，保持后台运行保活。
+	# 仅在非桌面平台（如 Web/Mobile，其浏览器或系统有挂起JS限频机制）下，才在失去焦点时主动物理断开以保护 session。
+	var is_mobile_or_web = OS.has_feature("mobile") or OS.has_feature("web")
+
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		if is_mobile_or_web:
+			net_log("Application focus out (backgrounded). Actively pausing connection to protect session.")
+			if connection_state == ConnectionState.CONNECTED or connection_state == ConnectionState.RESUMING:
+				connection_state = ConnectionState.RECONNECTING
+				socket.close() # 主动断开套接字
+				is_connected_to_host = false
+				if reconnect_controller:
+					reconnect_controller.stop_reconnecting() # 暂停自动重连
+				connection_closed.emit()
+		else:
+			net_log("Application focus out. (Desktop platform, keeping connection active)")
+			
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		if is_mobile_or_web:
+			net_log("Application focus in (resumed). Re-activating reconnect controller if disconnected...")
+			if connection_state == ConnectionState.RECONNECTING:
+				if reconnect_controller:
+					reconnect_controller.start_reconnecting()
+		else:
+			# 桌面端：如果网络由于其他原因（如长时间挂机或网络抖动）在失焦期间断开，切回前台时立刻唤醒重连机制
+			net_log("Application focus in. Checking connection stability...")
+			var state = socket.get_ready_state()
+			if state == WebSocketPeer.STATE_CLOSED or connection_state == ConnectionState.DISCONNECTED:
+				if not load_resume_session().is_empty():
+					net_log("Connection was lost. Refocus triggers instant reconnect.")
+					connection_state = ConnectionState.RECONNECTING
+					if reconnect_controller:
+						reconnect_controller.start_reconnecting()
+					else:
+						connect_to_server()
 
 func _process(_delta: float) -> void:
 	socket.poll()
 	var state = socket.get_ready_state()
+	var current_time = Time.get_ticks_msec() / 1000.0
 	
 	if state == WebSocketPeer.STATE_OPEN:
-		if not is_connected_to_host:
+		# 1. 首次建连握手转换
+		if connection_state == ConnectionState.CONNECTING:
+			connection_state = ConnectionState.CONNECTED
 			is_connected_to_host = true
 			_send_handshake()
+			last_recv_packet_time = current_time
 		
+		# 2. 如果是从 RECONNECTING 重新建连成功，切为 RESUMING 状态，完成 Handshake
+		elif connection_state == ConnectionState.RECONNECTING:
+			connection_state = ConnectionState.RESUMING
+			is_connected_to_host = true
+			_send_handshake()
+			reconnect_controller.stop_reconnecting()
+			last_recv_packet_time = current_time
+		
+		# 3. 消费所有的底层数据包
 		while socket.get_available_packet_count():
 			var packet = socket.get_packet()
+			last_recv_packet_time = current_time # 每次收包重置 15s 丢包计时器
 			_handle_nano_packet(packet)
+			
+		# 4. 客户端权威心跳丢包判定 (丢包检测调整为 30.0 秒，容忍网络抖动，与服务端 5 秒心跳保活完美匹配)
+		if current_time - last_recv_packet_time > 30.0:
+			net_warn("No heartbeat responses from server for 30s. Disconnecting to trigger seamless reconnect...")
+			socket.close() # 物理关闭以触发下方的 STATE_CLOSED
 	
 	elif state == WebSocketPeer.STATE_CLOSED:
-		if is_connected_to_host:
-			reset_state()
+		is_connected_to_host = false
+		
+		# 正常对局进行中突发断线，不重置状态，切换到 RECONNECTING 并开启指数退避重试
+		if connection_state == ConnectionState.CONNECTED or connection_state == ConnectionState.RESUMING:
+			connection_state = ConnectionState.RECONNECTING
+			recovery_state = ConnectionRecoveryState.LOST # [NEW] 状态机同步切为 LOST
+			net_warn("Socket connection lost! Initiating seamless reconnect backoff sequence...")
+			reconnect_controller.start_reconnecting()
 			connection_closed.emit()
+		
+		# 已经是重连过程中，且某次连接尝试失败回落到 CLOSED 时
+		elif connection_state == ConnectionState.RECONNECTING:
+			reconnect_controller.schedule_next()
+			
+		# 手动断开或失败时置为 DISCONNECTED
+		else:
+			if connection_state != ConnectionState.FAILED:
+				connection_state = ConnectionState.DISCONNECTED
 
 # ── Nano 协议编解码 ──
 
@@ -100,7 +245,17 @@ func _handle_nano_packet(packet: PackedByteArray) -> void:
 			net_log("Handshake received, sending ACK...")
 			_send_raw_packet(PacketType.HANDSHAKE_ACK, PackedByteArray())
 			connected_to_server.emit()
+			
+			# 物理通道与协议重连成功，将控制权交给 SessionRecovery 进行深层 Session 业务验证恢复
+			if connection_state == ConnectionState.RESUMING:
+				var recovery = get_node_or_null("SessionRecovery")
+				if recovery:
+					# 延迟 0.05s 发起，保证服务端的 HANDSHAKE 完全解析
+					get_tree().create_timer(0.05).timeout.connect(func():
+						recovery.call("start_recovery_sequence")
+					)
 		PacketType.HEARTBEAT:
+			# 服务端心跳响应回复
 			_send_raw_packet(PacketType.HEARTBEAT, PackedByteArray())
 		PacketType.DATA:
 			_handle_data_packet(body)
@@ -150,6 +305,10 @@ func _handle_data_packet(data: PackedByteArray) -> void:
 		net_warn("JSON Parse Error. Raw: " + body_str)
 		return
 	
+	# [NEW] 记录收到的最新包自增 seq (用于丢包恢复，支持防御性过滤)
+	if body is Dictionary and body.has("seq"):
+		last_ack_seq = int(body.seq)
+	
 	if route != "":
 		net_log("Route: " + route + " Msg: " + body_str)
 		_dispatch_route_message(route, body)
@@ -159,6 +318,12 @@ func _dispatch_route_message(route: String, body: Variant) -> void:
 		"User.Auth":
 			my_id = clean_id(body.get("id", ""))
 			player_name = body.get("name", "")
+			
+			# 同步至全局唯一 User 会话单例中，完成登录状态认证
+			var user_node = get_node_or_null("/root/User")
+			if user_node:
+				user_node.call("set_authenticated_user", body)
+				
 			if body.has("data"):
 				profile_loaded.emit(body.get("data", {}))
 		"Room.Join", "Room.Create":
@@ -172,6 +337,13 @@ func _dispatch_route_message(route: String, body: Variant) -> void:
 			map_seed = int(body.get("seed", 0))
 			seed_received = true
 			is_host = (route == "Room.Create")
+			
+			# [NEW] 预生成的 resume_token 与 player_id 本地持久化缓存
+			var p_id = body.get("player_id", "")
+			var r_token = body.get("resume_token", "")
+			if p_id != "" and r_token != "":
+				save_resume_session(p_id, current_room, r_token)
+				
 			room_joined.emit(map_seed)
 		"Room.List":
 			net_log("Room list updated, count: " + str(body.size() if body is Array else 0))
@@ -188,6 +360,31 @@ func _dispatch_route_message(route: String, body: Variant) -> void:
 			for p in room_players:
 				players[clean_id(p.id)] = p
 			room_state_updated.emit(room_players)
+		
+		# [NEW] 重连恢复响应
+		"Room.Resume":
+			if body.get("success") == false:
+				var err_msg = body.get("error", "Tombstone expired")
+				net_warn("Room.Resume failed: " + err_msg)
+				_on_reconnect_failed()
+				return
+			
+			net_log("Room.Resume succeeded! Dynamic Catchup Triggered.")
+			
+			# 切回连接态，恢复房间数据
+			connection_state = ConnectionState.CONNECTED
+			is_connected_to_host = true
+			current_room = body.get("room_id", "")
+			map_seed = int(body.get("seed", 0))
+			seed_received = true
+			
+			# 执行快照还原
+			var snapshot = body.get("snapshot", {})
+			var missed_events = body.get("missed_events", [])
+			apply_snapshot(snapshot)
+			replay_events(missed_events)
+			
+			room_joined.emit(map_seed)
 	
 	message_received.emit(route, body)
 
@@ -200,7 +397,7 @@ func notify(route: String, data: Dictionary) -> void:
 	_send_msg(MsgType.NOTIFY, route, data)
 
 func _send_msg(type: int, route: String, data: Dictionary) -> void:
-	# 核心修复：让 last_msg_id 在 [1, 127] 之间循环自增并回绕，保证请求端与接收端对齐
+	# 让 last_msg_id 在 [1, 127] 之间循环自增并回绕，保证请求端与接收端对齐
 	last_msg_id = (last_msg_id + 1) & 0x7F
 	if last_msg_id == 0:
 		last_msg_id = 1
@@ -212,7 +409,6 @@ func _send_msg(type: int, route: String, data: Dictionary) -> void:
 	msg.append(type << 1)
 	
 	if type == MsgType.REQUEST or type == MsgType.RESPONSE:
-		# 直接写入 7位 回绕 ID，存储与解析使用完全一致的 Key
 		msg.append(last_msg_id)
 		if type == MsgType.REQUEST:
 			pending_requests[last_msg_id] = route
@@ -239,10 +435,117 @@ func _send_raw_packet(type: int, body: PackedByteArray) -> void:
 	packet.append_array(body)
 	socket.put_packet(packet)
 
+# ── [NEW] 重连网络逻辑与快照追赶 ──
+
+# 执行 Room.Resume RPC 请求
+func _send_resume_rpc() -> void:
+	var session_data = load_resume_session()
+	var token = session_data.get("resume_token", "")
+	if token == "":
+		net_warn("No resume token found. Reconnection aborted.")
+		_on_reconnect_failed()
+		return
+		
+	net_log("Sending Room.Resume RPC with token: " + token)
+	request("Room.Resume", {
+		"resume_token": token,
+		"last_ack_seq": last_ack_seq
+	})
+
+# 还原服务端局内 authoritative 快照到局内玩家状态中
+func apply_snapshot(snapshot: Dictionary) -> void:
+	net_log("Applying authoritative GameState snapshot: " + JSON.stringify(snapshot))
+	
+	# 刷新 player 字典与 room_players 信息
+	var snap_players = snapshot.get("players", {})
+	room_players.clear()
+	players.clear()
+	
+	for pid in snap_players.keys():
+		var p_state = snap_players[pid]
+		var nano_player = {
+			"id": int(pid) if pid.is_valid_int() else 0,
+			"name": p_state.get("name", "UnknownPlayer"),
+			"ready": true,
+			"char": 0
+		}
+		room_players.append(nano_player)
+		players[clean_id(pid)] = nano_player
+		
+	room_state_updated.emit(room_players)
+	
+	# 广播最核心的快照数据，促使游戏局内重新渲染对局
+	game_state_resumed.emit(snapshot)
+
+# 补发丢失的对局微小事件 (回放包)
+func replay_events(_events: Array) -> void:
+	net_log("Replaying missed events, count: " + str(_events.size()))
+
+# ReconnectController 信号绑定：单次尝试重连失败
+func _on_reconnect_attempt_failed(attempt: int, next_delay: float) -> void:
+	net_log("Seamless reconnect attempt #%d failed. Scheduled next try in %.1fs" % [attempt, next_delay])
+	recovery_state = ConnectionRecoveryState.RECONNECTING # [NEW] 状态机同步切为 RECONNECTING
+
+# ReconnectController 信号绑定：重连总重试彻底失败
+func _on_reconnect_failed() -> void:
+	net_warn("All reconnect attempts failed or token expired. Clearing session.")
+	reconnect_controller.stop_reconnecting()
+	connection_state = ConnectionState.FAILED
+	recovery_state = ConnectionRecoveryState.FAILED # [NEW] 状态机同步切为 FAILED
+	reset_state()
+	connection_closed.emit()
+
+# [NEW] SessionRecovery 信号绑定：成功恢复完毕
+func _on_session_recovery_complete() -> void:
+	net_log("NetworkManager: Session recovery pipeline completed successfully.")
+	# 状态机已由 SessionRecovery 自动切回 NORMAL，触发 UI 释放
+
+# [NEW] SessionRecovery 信号绑定：恢复中发生致命业务错误彻底失败
+func _on_session_recovery_failed(error_msg: String) -> void:
+	net_warn("NetworkManager: Session recovery pipeline failed: " + error_msg)
+	_on_reconnect_failed()
+
+# ── [NEW] Session 持久化本地工具 ──
+
+func save_resume_session(player_id: String, room_id: String, token: String) -> void:
+	var data = {
+		"player_id": player_id,
+		"room_id": room_id,
+		"resume_token": token,
+		"saved_at": Time.get_unix_time_from_system()
+	}
+	var file = FileAccess.open(RESUME_FILE, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(data))
+		net_log("Saved resume session to local file successfully.")
+
+func load_resume_session() -> Dictionary:
+	if not FileAccess.file_exists(RESUME_FILE):
+		return {}
+	var file = FileAccess.open(RESUME_FILE, FileAccess.READ)
+	if file:
+		var content = file.get_as_text()
+		var data = JSON.parse_string(content)
+		if data is Dictionary:
+			return data
+	return {}
+
+func clear_resume_session() -> void:
+	if FileAccess.file_exists(RESUME_FILE):
+		DirAccess.remove_absolute(RESUME_FILE)
+		net_log("Cleared local resume session.")
+
 # ── 业务接口 ──
 
 func connect_to_server() -> void:
-	socket.connect_to_url(ws_url)
+	if connection_state != ConnectionState.RECONNECTING:
+		connection_state = ConnectionState.CONNECTING
+	
+	# 重置并重新创建新的套接字，清除旧的物理连接脏状态，解决 STATE_CLOSED 连不上问题
+	socket = WebSocketPeer.new()
+	var err = socket.connect_to_url(ws_url)
+	if err != OK:
+		net_warn("Failed to initiate connect_to_url, error code: " + str(err))
 
 func disconnect_from_server() -> void:
 	socket.close()
@@ -250,6 +553,8 @@ func disconnect_from_server() -> void:
 	net_log("Manual disconnect requested.")
 
 func reset_state() -> void:
+	connection_state = ConnectionState.DISCONNECTED
+	recovery_state = ConnectionRecoveryState.NORMAL # [NEW] 复位重连状态
 	is_connected_to_host = false
 	my_id = ""
 	current_room = ""
@@ -259,6 +564,13 @@ func reset_state() -> void:
 	last_msg_id = 0
 	pending_requests.clear()
 	seed_received = false
+	clear_resume_session()
+	
+	# [NEW] 重置全局 User 会话凭据单例，彻底切断会话
+	var user_node = get_node_or_null("/root/User")
+	if user_node:
+		user_node.call("clear")
+		
 	net_log("Network state reset.")
 
 func auth(username: String) -> void:

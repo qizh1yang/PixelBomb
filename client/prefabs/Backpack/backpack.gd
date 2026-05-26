@@ -556,21 +556,36 @@ func updateBackpackStats() -> void:
 	_syncToPlayer(bomb, radius, shield, speed, epic, r_up, r_down, r_left, r_right)
 
 func _syncToPlayer(bomb, radius, shield, speed, epic, r_up, r_down, r_left, r_right) -> void:
-	# 标注修改点：联机模式下，初始属性由服务端权威广播，不在此由本地背包直接同步覆盖
-	if GameMode and not GameMode.is_offline_mode:
+	var p = GameMode.get_local_player() if GameMode else null
+	if not is_instance_valid(p):
 		return
 		
-	var p = GameMode.get_local_player()
-	if is_instance_valid(p):
-		p.maxBombsCap = 2 + bomb
-		p.explosionRadiusCap = 1 + radius
-		p.radiusUpCap = r_up
-		p.radiusDownCap = r_down
-		p.radiusLeftCap = r_left
-		p.radiusRightCap = r_right
-		p.maxShieldsCap = 1 + shield
-		p.speedCap = 95.0 + speed
-		p.hasPersistentShield = epic
+	# 联机模式下，基础属性由服务端权威stats缓存决定，不直接写死默认值
+	var base_bomb = 2
+	var base_radius = 1
+	var base_shield = 1
+	var base_speed = 95.0
+	var base_epic = false
+	
+	if GameMode and not GameMode.is_offline_mode:
+		var my_id = GameMode.get_local_player_id()
+		if GameMode.initial_stats_cache.has(my_id):
+			var stats = GameMode.initial_stats_cache[my_id]
+			base_bomb = int(stats.get("bomb_cap", 2))
+			base_radius = int(stats.get("radius_cap", 1))
+			base_shield = int(stats.get("shield_cap", 1))
+			base_speed = float(stats.get("speed_cap", 95.0))
+			base_epic = bool(stats.get("has_persistent_shield", false))
+			
+	p.maxBombsCap = base_bomb + bomb
+	p.explosionRadiusCap = base_radius + radius
+	p.radiusUpCap = r_up
+	p.radiusDownCap = r_down
+	p.radiusLeftCap = r_left
+	p.radiusRightCap = r_right
+	p.maxShieldsCap = base_shield + shield
+	p.speedCap = base_speed + speed
+	p.hasPersistentShield = base_epic or epic
 
 func get_backpack_layout_data() -> Array[Dictionary]:
 	var layout: Array[Dictionary] = []
@@ -747,10 +762,10 @@ func _init_context_menu() -> void:
 		vbox.add_child(btn)
 		return btn
 		
-	menuUseBtn = make_btn.call("⚡ 使用装备")
-	menuInsuranceBtn = make_btn.call("🔒 移入保险格")
-	menuDiscardBtn = make_btn.call("🗑️ 快捷丢弃")
-	menuCancelBtn = make_btn.call("× 取消")
+	menuUseBtn = make_btn.call("使用装备")
+	menuInsuranceBtn = make_btn.call("移入保险格")
+	menuDiscardBtn = make_btn.call("快捷丢弃")
+	menuCancelBtn = make_btn.call("取消")
 	
 	menuUseBtn.pressed.connect(_on_menu_use_pressed)
 	menuInsuranceBtn.pressed.connect(_on_menu_insurance_pressed)
@@ -774,9 +789,9 @@ func _on_item_right_clicked(itemUI: Control) -> void:
 		
 	menuInsuranceBtn.visible = true
 	if in_insurance:
-		menuInsuranceBtn.text = "🎒 移回主背包"
+		menuInsuranceBtn.text = "移回主背包"
 	else:
-		menuInsuranceBtn.text = "🔒 移入保险格"
+		menuInsuranceBtn.text = "移入保险格"
 		
 	contextMenu.show()
 	contextMenu.global_position = get_global_mouse_position() + Vector2(4, 4)

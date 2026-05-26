@@ -560,7 +560,7 @@ class ItemTooltipPanel extends PanelContainer:
 		price_label = Label.new()
 		price_label.add_theme_font_size_override("font_size", 10)
 		price_label.add_theme_color_override("font_color", Color("#ffb300"))
-		price_label.text = "💰 回收价值"
+		price_label.text = "回收价值"
 		vbox.add_child(price_label)
 
 	func setup(item_res: BackpackItemResource) -> void:
@@ -571,16 +571,16 @@ class ItemTooltipPanel extends PanelContainer:
 		var rarity_color = Color("#909090")
 		match item_res.rarity:
 			0:
-				rarity_str = "🔷 稀有 (Rare)"
+				rarity_str = "稀有 (Rare)"
 				rarity_color = Color("#0078d4")
 			1:
-				rarity_str = "🔮 史诗 (Epic)"
+				rarity_str = "史诗 (Epic)"
 				rarity_color = Color("#a335ee")
 			2:
-				rarity_str = "👑 钻石 (Diamond)"
+				rarity_str = "钻石 (Diamond)"
 				rarity_color = Color("#ffd700")
 		if item_res.has_persistent_shield or item_res.shield_cap_boost > 0:
-			rarity_str = "🔥 特殊免死金牌"
+			rarity_str = "特殊免死金牌"
 			rarity_color = Color("#ff4444")
 			
 		rarity_label.text = rarity_str
@@ -593,15 +593,15 @@ class ItemTooltipPanel extends PanelContainer:
 		for cell: Vector2i in item_res.shape:
 			maxX = max(maxX, cell.x)
 			maxY = max(maxY, cell.y)
-		desc += "📐 占用格子: %dx%d\n" % [(maxX + 1), (maxY + 1)]
+		desc += "占用格子: %dx%d\n" % [(maxX + 1), (maxY + 1)]
 		if item_res.bomb_cap_boost > 0: 
-			desc += "💣 炸弹容量: +%d 个\n" % item_res.bomb_cap_boost
+			desc += "炸弹容量: +%d 个\n" % item_res.bomb_cap_boost
 		if item_res.speed_cap_boost > 0: 
-			desc += "👟 移动速度: +%.0f%%\n" % (item_res.speed_cap_boost * 100)
+			desc += "移动速度: +%.0f%%\n" % (item_res.speed_cap_boost * 100)
 		if item_res.shield_cap_boost > 0: 
-			desc += "🛡️ 护盾上限: +%d 个\n" % item_res.shield_cap_boost
+			desc += "护盾上限: +%d 个\n" % item_res.shield_cap_boost
 		if item_res.has_persistent_shield: 
-			desc += "✨ 携带开局免死护盾\n"
+			desc += "携带开局免死护盾\n"
 		
 		var power_boosts = []
 		if item_res.radius_cap_boost > 0: power_boosts.append("全方向 +%d" % item_res.radius_cap_boost)
@@ -610,7 +610,7 @@ class ItemTooltipPanel extends PanelContainer:
 		if item_res.radius_left_boost > 0: power_boosts.append("向左 +%d" % item_res.radius_left_boost)
 		if item_res.radius_right_boost > 0: power_boosts.append("向右 +%d" % item_res.radius_right_boost)
 		if power_boosts.size() > 0:
-			desc += "🔥 爆炸威力: " + ", ".join(power_boosts) + "\n"
+			desc += "爆炸威力: " + ", ".join(power_boosts) + "\n"
 			
 		if desc == "":
 			desc = "基础属性加成装备"
@@ -636,4 +636,4 @@ class ItemTooltipPanel extends PanelContainer:
 			1: price *= 2
 			2: price *= 4
 			
-		price_label.text = "💰 回收价值: %d 金币" % price
+		price_label.text = "回收价值: %d 金币" % price

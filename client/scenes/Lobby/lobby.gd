@@ -31,11 +31,16 @@ func _ready() -> void:
 	
 	# 初始请求房间列表
 	net.request_room_list()
+	
+	var logout_btn = get_node_or_null("MainLayout/BottomBar/Margin/HBox/LogoutBtn")
+	if logout_btn:
+		logout_btn.mouse_entered.connect(func(): logout_btn.add_theme_color_override("font_color", Color("#b96a5d")))
+		logout_btn.mouse_exited.connect(func(): logout_btn.add_theme_color_override("font_color", Color("#B8B2A7")))
 
 func _refresh_ui() -> void:
 	var net = NetworkManager
 	playerNameLabel.text = net.player_name
-	coinsLabel.text = "💰 %s" % _format_number(GlobalPlayerData.coins)
+	coinsLabel.text = "%s" % _format_number(GlobalPlayerData.coins)
 	
 	_update_connection_status()
 
@@ -54,10 +59,10 @@ func _update_connection_status() -> void:
 	var net = NetworkManager
 	if net.is_connected_to_host:
 		connStatus.text = "● 已连接至沧溟海联合事务所"
-		connStatus.modulate = Color("#4ADE80")
+		connStatus.modulate = Color("#7fa97a")
 	else:
 		connStatus.text = "● 连接中断"
-		connStatus.modulate = Color("#E83A3A")
+		connStatus.modulate = Color("#b96a5d")
 
 # ── 信号回调 ──
 
@@ -65,16 +70,22 @@ func _on_room_list_received(rooms: Array) -> void:
 	for child in roomList.get_children():
 		child.queue_free()
 	
-	missionCountLabel.text = "共 %d 个空投任务" % rooms.size()
+	var valid_rooms = []
+	for room_data in rooms:
+		var current_players = int(room_data.get("player_count", 0))
+		if current_players > 0:
+			valid_rooms.append(room_data)
+			
+	missionCountLabel.text = "共 %d 个探索任务" % valid_rooms.size()
 	
-	if rooms.is_empty():
+	if valid_rooms.is_empty():
 		var empty_label = Label.new()
-		empty_label.text = "暂无空投任务，创建一个？"
+		empty_label.text = "暂无探索任务，创建一个？"
 		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_label.modulate.a = 0.5
 		roomList.add_child(empty_label)
 	else:
-		for room_data in rooms:
+		for room_data in valid_rooms:
 			var card = RoomCardScene.instantiate()
 			roomList.add_child(card)
 			card.setup(room_data)
