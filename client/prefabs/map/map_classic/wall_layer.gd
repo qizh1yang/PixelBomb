@@ -13,7 +13,7 @@ signal wallDestroyed(cellPos: Vector2i)
 @export_group("Map Settings")
 @export var width: int = 20
 @export var height: int = 20
-@export var destructibleRate: float = 0.65
+@export var destructibleRate: float = 0.75
 
 # ── 私有成员变量 ──
 var indestructibleMap := []

@@ -352,6 +352,15 @@ func placeBomb() -> void:
 				"y": targetCell.y
 			})
 
+# 获取四方向实际爆炸距离（受限于各方向的上限）
+func get_actual_explosion_ranges() -> Dictionary:
+	return {
+		"up": mini(currentRadius, explosionRadiusCap + radiusUpCap),
+		"down": mini(currentRadius, explosionRadiusCap + radiusDownCap),
+		"left": mini(currentRadius, explosionRadiusCap + radiusLeftCap),
+		"right": mini(currentRadius, explosionRadiusCap + radiusRightCap)
+	}
+
 # 实例化炸弹并挂载到场景
 # cell：目标地图格坐标；radius：当前爆炸威力等级
 func doSpawnBomb(cell: Vector2i, radius: int) -> void:
@@ -367,19 +376,11 @@ func doSpawnBomb(cell: Vector2i, radius: int) -> void:
 	# explosionRadiusCap 是全局基础上限（通常为 1 + 全局加成）
 	bomb.explosionLength = radius 
 	
-	# 联网模式下，为保证画面与服务器权威判定高度一致，直接使用服务器计算的 radius 作为各方向上限
-	var net = get_node_or_null("/root/NetworkManager")
-	var gm = get_node_or_null("/root/GameMode")
-	if net and gm and not gm.is_offline_mode:
-		bomb.limitUp = radius
-		bomb.limitDown = radius
-		bomb.limitLeft = radius
-		bomb.limitRight = radius
-	else:
-		bomb.limitUp = explosionRadiusCap + radiusUpCap
-		bomb.limitDown = explosionRadiusCap + radiusDownCap
-		bomb.limitLeft = explosionRadiusCap + radiusLeftCap
-		bomb.limitRight = explosionRadiusCap + radiusRightCap
+	var actual_ranges = get_actual_explosion_ranges()
+	bomb.limitUp = actual_ranges["up"]
+	bomb.limitDown = actual_ranges["down"]
+	bomb.limitLeft = actual_ranges["left"]
+	bomb.limitRight = actual_ranges["right"]
 	
 	bomb.global_position = wlayer.to_global(wlayer.map_to_local(cell))
 	activeBombs += 1

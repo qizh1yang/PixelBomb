@@ -6,8 +6,8 @@
 script = ExtResource("1_script")
 character_id = "player3"
 char_index = 2
-display_name = "重装·破壁者"
-description = "初始自带护盾，但行动较为缓慢。"
+display_name = "雪地行者"
+description = "特性暂定"
 base_speed = 75.0
 base_bomb_cap = 1
 base_radius = 1

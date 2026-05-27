@@ -392,7 +392,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_font_sizes/font_size = 16
-text = "目标空岛：碎空岛 (经典)"
+text = "目标：海上孤岛（经典）"
 
 [node name="Capacity" type="Label" parent="MainVBox/Body/HBox/RightCol/MissionPanel/Margin/MissionInfo"]
 layout_mode = 2
@@ -400,23 +400,17 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_font_sizes/font_size = 16
 text = "小队容量：1 / 4 人"
 
-[node name="Difficulty" type="Label" parent="MainVBox/Body/HBox/RightCol/MissionPanel/Margin/MissionInfo"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.9)
-theme_override_font_sizes/font_size = 16
-text = "任务难度：★★★☆☆ (中等)"
-
 [node name="Duration" type="Label" parent="MainVBox/Body/HBox/RightCol/MissionPanel/Margin/MissionInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_font_sizes/font_size = 16
-text = "预计时长：15 分钟"
+text = "预计时长：5分钟"
 
 [node name="Rules" type="Label" parent="MainVBox/Body/HBox/RightCol/MissionPanel/Margin/MissionInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.6, 0.65, 1)
 theme_override_font_sizes/font_size = 16
-text = "特殊规则：重力减弱，爆炸范围+20%"
+text = "特殊规则：暂无"
 
 [node name="CharPreviewPanel" type="PanelContainer" parent="MainVBox/Body/HBox/RightCol"]
 custom_minimum_size = Vector2(0, 240)

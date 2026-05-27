@@ -45,16 +45,17 @@ type (
 	}
 
 	NanoRoom struct {
-		ID             string
-		Players        map[int64]*NanoPlayer
-		GameState      *GameState
-		InGame         bool
-		Group          *nano.Group
-		Seed           int64
-		State          int // 0: WAITING, 1: PLAYING, 2: FINISHED
-		DeadPlayers    map[int64]bool
-		Items          map[string]*WorldItemState
-		TriggeredDrops map[string]bool // Track coordinates that already triggered drop rolls
+		ID                  string
+		Players             map[int64]*NanoPlayer
+		GameState           *GameState
+		InGame              bool
+		Group               *nano.Group
+		Seed                int64
+		State               int // 0: WAITING, 1: PLAYING, 2: FINISHED
+		DeadPlayers         map[int64]bool
+		Items               map[string]*WorldItemState
+		TriggeredDrops      map[string]bool // Track coordinates that already triggered drop rolls
+		DestroyedWallsCount int             // 累计炸毁的墙壁数量
 	}
 
 	JoinRequest struct {
@@ -605,6 +606,7 @@ func (c *RoomComponent) Return(s *session.Session, msg []byte) error {
 		r.DeadPlayers = make(map[int64]bool)
 		r.Items = make(map[string]*WorldItemState)
 		r.TriggeredDrops = make(map[string]bool)
+		r.DestroyedWallsCount = 0
 		r.Group.Broadcast("onReturn", nil)
 	}
 	c.lock.Unlock()
@@ -766,25 +768,28 @@ func (c *RoomComponent) TriggerDrop(s *session.Session, msg *TriggerDropRequest)
 		return nil
 	}
 	r.TriggeredDrops[key] = true
+	r.DestroyedWallsCount++
 
 	roll := rand.Float64()
 	var dropType string
-	if roll < 0.05 {
+	isChestAllowed := r.DestroyedWallsCount >= 18
+
+	if roll < 0.015 && isChestAllowed {
 		dropType = "chest"
-	} else if roll < 0.25 {
+	} else if roll >= 0.015 && roll < 0.465 {
 		// Roll item type
 		itemRoll := rand.Intn(100)
-		if itemRoll < 30 {
+		if itemRoll < 35 {
 			dropType = "count"
-		} else if itemRoll < 70 {
+		} else if itemRoll < 75 {
 			dropType = "power"
-		} else if itemRoll < 90 {
+		} else if itemRoll < 95 {
 			dropType = "speed"
 		} else {
 			dropType = "shield"
 		}
 	} else {
-		return nil // No drop
+		return nil // No drop (including rolls under 0.015 when wall count < 18)
 	}
 
 	if r.Items == nil {

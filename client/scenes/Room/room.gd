@@ -48,13 +48,22 @@ func _setup_char_selection() -> void:
 	for child in charList.get_children(): child.queue_free()
 	char_cards.clear()
 	
-	var names = ["烈焰破壁者", "寒冰破壁者", "自然破壁者", "虚空破壁者"]
-	for i in range(4):
+	# 使用 CharacterRegistry 动态获取所有角色资源
+	var all_chars = CharacterRegistry.get_all_characters()
+	for char_res in all_chars:
 		var card = CharCardScene.instantiate()
 		charList.add_child(card)
-		var texture = load("res://prefabs/Players/player%d/res/Faceset.png" % (i + 1))
-		card.setup(i, names[i], texture)
-		card.pressed.connect(_on_char_selected.bind(i))
+		
+		var idx = char_res.char_index
+		var texture = char_res.icon
+		if not texture:
+			# 如果资源里没配置 icon，则使用默认的路径规则
+			var texture_path = "res://prefabs/Players/player%d/res/Faceset.png" % (idx + 1)
+			if ResourceLoader.exists(texture_path):
+				texture = load(texture_path)
+				
+		card.setup(idx, char_res.display_name, char_res.description, texture)
+		card.pressed.connect(_on_char_selected.bind(idx))
 		char_cards.append(card)
 	
 	_update_char_highlight()

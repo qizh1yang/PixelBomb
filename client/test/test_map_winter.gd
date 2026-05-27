@@ -15,6 +15,37 @@ func _ready() -> void:
 	# 使用默认种子生成地图
 	_generate_map_with_seed(12345)
 
+	# 自动化模拟开箱测试（验证重构后各阶段及软保底的全部日志表现）
+	print("================= START Loot Chest Simulation =================")
+	# 重置全局状态以便进行纯净测试
+	GlobalPlayerData.opened_chests_count = 0
+	GlobalPlayerData.chests_since_last_diamond = 0
+	
+	# 加载宝箱场景并实例化，专门用来进行纯逻辑算法校验
+	var test_chest = load("res://prefabs/items/Chest/chest.tscn").instantiate()
+	add_child(test_chest)
+	
+	for c_idx in range(60):
+		# 模拟宝箱开启的阶段更新时序
+		test_chest._diamond_looted_this_chest = false
+		GlobalPlayerData.opened_chests_count += 1
+		
+		# 每个宝箱产出 1~2 个物品
+		var roll_count = randi() % 2 + 1
+		for r_idx in range(roll_count):
+			test_chest._get_random_outfit_path()
+			
+		# 根据本箱中是否抽中钻石来计算保底重置/累加
+		if test_chest._diamond_looted_this_chest:
+			GlobalPlayerData.chests_since_last_diamond = 0
+			print("[TEST-SIM] Simulated Diamond hit on Chest %d! Reset pity to 0." % [c_idx + 1])
+		else:
+			GlobalPlayerData.chests_since_last_diamond += 1
+			print("[TEST-SIM] Simulated Chest %d open. Pity now: %d" % [c_idx + 1, GlobalPlayerData.chests_since_last_diamond])
+			
+	test_chest.queue_free()
+	print("================= END Loot Chest Simulation =================")
+
 
 func _generate_map_with_seed(custom_seed: int = -1) -> void:
 	if map_winter == null:

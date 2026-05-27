@@ -459,7 +459,16 @@ func _show_tooltip() -> void:
 	# 动态创建极致优雅、高性能的纯代码悬停面板，防止因缺失外置场景造成资源加载失败
 	tooltip = ItemTooltipPanel.new()
 	tooltip.setup(resource)
-	get_tree().root.add_child(tooltip)
+	
+	var tool_layer = get_tree().root.get_node_or_null("DynamicTooltipLayer")
+	if not tool_layer:
+		tool_layer = CanvasLayer.new()
+		tool_layer.name = "DynamicTooltipLayer"
+		tool_layer.layer = 128
+		get_tree().root.add_child(tool_layer)
+		
+	tool_layer.add_child(tooltip)
+	
 	_update_tooltip_position()
 
 func _hide_tooltip() -> void:
@@ -494,48 +503,48 @@ class ItemTooltipPanel extends PanelContainer:
 		# 极具质感的 #1a2535 科技深蓝背景、1px #2a3a4f 亮色边框及 6px 圆角
 		var style = StyleBoxFlat.new()
 		style.bg_color = Color("#1a2535")
-		style.border_width_left = 1
-		style.border_width_top = 1
-		style.border_width_right = 1
-		style.border_width_bottom = 1
+		style.border_width_left = 2
+		style.border_width_top = 2
+		style.border_width_right = 2
+		style.border_width_bottom = 2
 		style.border_color = Color("#2a3a4f")
-		style.corner_radius_top_left = 6
-		style.corner_radius_top_right = 6
-		style.corner_radius_bottom_left = 6
-		style.corner_radius_bottom_right = 6
+		style.corner_radius_top_left = 8
+		style.corner_radius_top_right = 8
+		style.corner_radius_bottom_left = 8
+		style.corner_radius_bottom_right = 8
 		
 		# 边缘柔和外阴影，增加层次感
 		style.shadow_color = Color(0, 0, 0, 0.45)
-		style.shadow_size = 6
-		style.shadow_offset = Vector2(2, 3)
+		style.shadow_size = 12
+		style.shadow_offset = Vector2(4, 6)
 		
-		# 内边距设置
-		style.content_margin_left = 12
-		style.content_margin_top = 10
-		style.content_margin_right = 12
-		style.content_margin_bottom = 10
+		# 内边距设置 (适配 1920x1080)
+		style.content_margin_left = 24
+		style.content_margin_top = 20
+		style.content_margin_right = 24
+		style.content_margin_bottom = 20
 		add_theme_stylebox_override("panel", style)
 		
 		var vbox = VBoxContainer.new()
-		vbox.add_theme_constant_override("separation", 6)
+		vbox.add_theme_constant_override("separation", 12)
 		add_child(vbox)
 		
 		# 物品名称
 		name_label = Label.new()
-		name_label.add_theme_font_size_override("font_size", 13)
+		name_label.add_theme_font_size_override("font_size", 26)
 		name_label.add_theme_color_override("font_color", Color("#ffffff"))
 		name_label.text = "装备名称"
 		vbox.add_child(name_label)
 		
 		# 稀有度标签
 		rarity_label = Label.new()
-		rarity_label.add_theme_font_size_override("font_size", 10)
+		rarity_label.add_theme_font_size_override("font_size", 18)
 		rarity_label.text = "稀有度"
 		vbox.add_child(rarity_label)
 		
 		# 亮色分割线
 		var sep1 = Panel.new()
-		sep1.custom_minimum_size = Vector2(0, 1)
+		sep1.custom_minimum_size = Vector2(0, 2)
 		var sep_style = StyleBoxFlat.new()
 		sep_style.bg_color = Color("#2a3a4f")
 		sep1.add_theme_stylebox_override("panel", sep_style)
@@ -543,22 +552,22 @@ class ItemTooltipPanel extends PanelContainer:
 		
 		# 效果描述
 		desc_label = Label.new()
-		desc_label.add_theme_font_size_override("font_size", 11)
+		desc_label.add_theme_font_size_override("font_size", 20)
 		desc_label.add_theme_color_override("font_color", Color("#c0c0c0"))
 		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		desc_label.custom_minimum_size = Vector2(180, 0)
+		desc_label.custom_minimum_size = Vector2(360, 0)
 		desc_label.text = "效果描述..."
 		vbox.add_child(desc_label)
 		
 		# 第二条分割线
 		var sep2 = Panel.new()
-		sep2.custom_minimum_size = Vector2(0, 1)
+		sep2.custom_minimum_size = Vector2(0, 2)
 		sep2.add_theme_stylebox_override("panel", sep_style)
 		vbox.add_child(sep2)
 		
 		# 出售价格
 		price_label = Label.new()
-		price_label.add_theme_font_size_override("font_size", 10)
+		price_label.add_theme_font_size_override("font_size", 18)
 		price_label.add_theme_color_override("font_color", Color("#ffb300"))
 		price_label.text = "回收价值"
 		vbox.add_child(price_label)

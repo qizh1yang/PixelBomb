@@ -60,11 +60,15 @@ func _on_invisible_btn_pressed() -> void:
 	invite_clicked.emit()
 
 func _get_char_name(idx: int) -> String:
-	var names = ["烈焰破壁者", "寒冰破壁者", "自然破壁者", "虚空破壁者"]
-	if idx >= 0 and idx < names.size(): return names[idx]
+	var char_res = CharacterRegistry.get_character_by_index(idx)
+	if char_res: return char_res.display_name
 	return "Player %d" % (idx + 1)
 
 func _get_char_avatar(idx: int) -> Texture:
+	var char_res = CharacterRegistry.get_character_by_index(idx)
+	if char_res and char_res.icon:
+		return char_res.icon
+	
 	var path = "res://prefabs/Players/player%d/res/Faceset.png" % (idx + 1)
 	if ResourceLoader.exists(path):
 		return load(path)

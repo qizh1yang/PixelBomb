@@ -29,92 +29,142 @@ var _opening_progress: float = 0.0
 var _is_opened: bool = false
 var chestID: String = ""
 
-# 局外物品池（按类别和权重定义）
-# 稀有(Rare): 55%, 史诗(Epic): 35%, 钻石(Diamond): 10%
-var _outfit_pool_data: Dictionary = {
-	"bomb": {
-		"items": ["res://prefabs/OutfitItems/outfit_bag_large.tres", "res://prefabs/OutfitItems/outfit_suitcase_wood.tres", "res://prefabs/OutfitItems/outfit_pumpkin_giant.tres"],
-		"weights": [55, 35, 10]
-	},
-	"speed": {
-		"items": ["res://prefabs/OutfitItems/outfit_speed_1.tres", "res://prefabs/OutfitItems/outfit_speed_3.tres", "res://prefabs/OutfitItems/outfit_speed_5.tres"],
-		"weights": [55, 35, 10]
-	},
-	"power_all": {
-		"items": ["res://prefabs/OutfitItems/outfit_power_1.tres", "res://prefabs/OutfitItems/outfit_power_2.tres", "res://prefabs/OutfitItems/outfit_power_3.tres"],
-		"weights": [55, 35, 10]
-	},
-	"power_left": {
-		"items": ["res://prefabs/OutfitItems/outfit_power_left_1.tres", "res://prefabs/OutfitItems/outfit_power_left_2.tres", "res://prefabs/OutfitItems/outfit_power_left_3.tres"],
-		"weights": [55, 35, 10]
-	},
-	"power_right": {
-		"items": ["res://prefabs/OutfitItems/outfit_power_right_1.tres", "res://prefabs/OutfitItems/outfit_power_right_2.tres", "res://prefabs/OutfitItems/outfit_power_right_3.tres"],
-		"weights": [55, 35, 10]
-	},
-	"power_up": {
-		"items": ["res://prefabs/OutfitItems/outfit_power_up_1.tres", "res://prefabs/OutfitItems/outfit_power_up_2.tres", "res://prefabs/OutfitItems/outfit_power_up_3.tres"],
-		"weights": [55, 35, 10]
-	},
-	"power_down": {
-		"items": ["res://prefabs/OutfitItems/outfit_power_down_1.tres", "res://prefabs/OutfitItems/outfit_power_down_2.tres", "res://prefabs/OutfitItems/outfit_power_down_3.tres"],
-		"weights": [55, 35, 10]
-	},
-	"special": {
-		"items": ["res://prefabs/OutfitItems/outfit_epic_shield.tres"],
-		"weights": [100]
-	}
+# ── 集中概率配置 ──
+const STAGE_EARLY_LIMIT: int = 5  # 前5个宝箱为早期阶段
+const STAGE_MID_LIMIT: int = 15   # 5~15个宝箱为中期阶段
+
+# 各阶段品质权重定义 [T1, T2, T3, DIAMOND]
+const WEIGHTS_EARLY: Array[float] = [100.0, 0.0, 0.0, 0.0]
+const WEIGHTS_MID: Array[float] = [88.0, 11.0, 1.0, 0.0]
+const WEIGHTS_LATE: Array[float] = [92.0, 7.0, 0.9, 0.1]
+
+# 钻石保底配置
+const PITY_30_PROBABILITY: float = 1.0  # 连续30个没出钻石，概率提升至 1%
+const PITY_50_PROBABILITY: float = 3.0  # 连续50个没出钻石，概率提升至 3%
+
+var _diamond_looted_this_chest: bool = false
+
+# ── 结构化局外装备掉落池（T1 / T2 / T3 / DIAMOND） ──
+const LOOT_POOL: Dictionary = {
+	"tier1": [
+		"res://prefabs/OutfitItems/outfit_bag_large.tres",
+		"res://prefabs/OutfitItems/outfit_speed_1.tres",
+		"res://prefabs/OutfitItems/outfit_power_1.tres",
+		"res://prefabs/OutfitItems/outfit_power_left_1.tres",
+		"res://prefabs/OutfitItems/outfit_power_right_1.tres",
+		"res://prefabs/OutfitItems/outfit_power_up_1.tres",
+		"res://prefabs/OutfitItems/outfit_power_down_1.tres"
+	],
+	"tier2": [
+		"res://prefabs/OutfitItems/outfit_suitcase_wood.tres",
+		"res://prefabs/OutfitItems/outfit_speed_3.tres",
+		"res://prefabs/OutfitItems/outfit_power_2.tres",
+		"res://prefabs/OutfitItems/outfit_power_left_2.tres",
+		"res://prefabs/OutfitItems/outfit_power_right_2.tres",
+		"res://prefabs/OutfitItems/outfit_power_up_2.tres",
+		"res://prefabs/OutfitItems/outfit_power_down_2.tres"
+	],
+	"tier3": [
+		"res://prefabs/OutfitItems/outfit_speed_5.tres",
+		"res://prefabs/OutfitItems/outfit_power_3.tres",
+		"res://prefabs/OutfitItems/outfit_power_left_3.tres",
+		"res://prefabs/OutfitItems/outfit_power_right_3.tres",
+		"res://prefabs/OutfitItems/outfit_power_up_3.tres",
+		"res://prefabs/OutfitItems/outfit_power_down_3.tres"
+	],
+	"diamond": [
+		"res://prefabs/OutfitItems/outfit_pumpkin_giant.tres",
+		"res://prefabs/OutfitItems/outfit_epic_shield.tres"
+	]
 }
 
 func _get_random_outfit_path() -> String:
+	# 步骤 1：根据 opened_chests_count 确定当前阶段
 	var current_opened = GlobalPlayerData.opened_chests_count
-	var diamond_items = [
-		"outfit_pumpkin_giant.tres",
-		"outfit_speed_5.tres",
-		"outfit_power_3.tres",
-		"outfit_power_left_3.tres",
-		"outfit_power_right_3.tres",
-		"outfit_power_up_3.tres",
-		"outfit_power_down_3.tres",
-		"outfit_epic_shield.tres"
-	]
+	var stage: String = "EARLY"
 	
-	var categories = _outfit_pool_data.keys()
-	# 如果开启次数小于3，剔除 special 类别（因为里面全是钻石级物品）
-	if current_opened < 3:
-		categories.erase("special")
+	if current_opened < STAGE_EARLY_LIMIT:
+		stage = "EARLY"
+	elif current_opened < STAGE_MID_LIMIT:
+		stage = "MID"
+	else:
+		stage = "LATE"
 	
-	var cat = categories.pick_random()
-	var data = _outfit_pool_data[cat]
+	# 步骤 2 & 3：根据当前阶段和保底计数构建动态生成的品质权重
+	var w_tier1: float = 0.0
+	var w_tier2: float = 0.0
+	var w_tier3: float = 0.0
+	var w_diamond: float = 0.0
 	
-	# 过滤数据池：如果开启次数小于3，暂时移除钻石级物品并重算权重
-	var available_items = []
-	var available_weights = []
-	for i in range(data.items.size()):
-		var is_diamond = false
-		for d in diamond_items:
-			if d in data.items[i]:
-				is_diamond = true
-				break
+	if stage == "EARLY":
+		w_tier1 = WEIGHTS_EARLY[0]
+		w_tier2 = WEIGHTS_EARLY[1]
+		w_tier3 = WEIGHTS_EARLY[2]
+		w_diamond = WEIGHTS_EARLY[3]
+	elif stage == "MID":
+		w_tier1 = WEIGHTS_MID[0]
+		w_tier2 = WEIGHTS_MID[1]
+		w_tier3 = WEIGHTS_MID[2]
+		w_diamond = WEIGHTS_MID[3]
+	elif stage == "LATE":
+		w_tier1 = WEIGHTS_LATE[0]
+		w_tier2 = WEIGHTS_LATE[1]
+		w_tier3 = WEIGHTS_LATE[2]
 		
-		if current_opened >= 3 or not is_diamond:
-			available_items.append(data.items[i])
-			available_weights.append(data.weights[i])
+		# 钻石软保底概率跃升：
+		# 正常 0.1% -> 30个没出 1% -> 50个没出 3%
+		var pity_count = GlobalPlayerData.chests_since_last_diamond
+		w_diamond = WEIGHTS_LATE[3]
+		if pity_count >= 50:
+			w_diamond = PITY_50_PROBABILITY
+		elif pity_count >= 30:
+			w_diamond = PITY_30_PROBABILITY
 	
-	# 如果该类别下没有可用物品（理论上不应该，除非全被过滤了），回退到第一个
-	if available_items.is_empty():
-		return data.items[0]
-
-	var total_weight = 0
-	for w in available_weights: total_weight += w
+	# 步骤 4：根据品质权重，先随机抽取“品质级别”
+	var weights: Array = [w_tier1, w_tier2, w_tier3, w_diamond]
+	var tiers: Array = ["tier1", "tier2", "tier3", "diamond"]
 	
-	var r = randi() % total_weight
-	var current_w = 0
-	for i in range(available_items.size()):
-		current_w += available_weights[i]
-		if r < current_w:
-			return available_items[i]
-	return available_items[0]
+	var total_weight: float = w_tier1 + w_tier2 + w_tier3 + w_diamond
+	var roll: float = randf() * total_weight
+	var cumulative: float = 0.0
+	var chosen_tier: String = "tier1"
+	
+	for i in range(weights.size()):
+		cumulative += weights[i]
+		if roll <= cumulative:
+			chosen_tier = tiers[i]
+			break
+	
+	# 步骤 5：再从该品质中随机抽具体物品，并同步处理钻石保底标志
+	var item_list: Array = LOOT_POOL.get(chosen_tier, [])
+	var chosen_item_path: String = ""
+	if not item_list.is_empty():
+		chosen_item_path = item_list.pick_random()
+	else:
+		chosen_item_path = LOOT_POOL["tier1"].pick_random()
+	
+	# 如果抽中钻石品质，则立刻标记本箱已产出钻石
+	if chosen_tier == "diamond":
+		_diamond_looted_this_chest = true
+	
+	# 打印日志输出
+	# 规范格式，例如：[CHEST] Stage: EARLY, Tier: T1, Item: outfit_power_1, Diamond pity: 12
+	var readable_tier = "T1"
+	match chosen_tier:
+		"tier1": readable_tier = "T1"
+		"tier2": readable_tier = "T2"
+		"tier3": readable_tier = "T3"
+		"diamond": readable_tier = "DIAMOND"
+		
+	var item_name = chosen_item_path.get_file().replace(".tres", "")
+	print("[CHEST] Stage: %s, Tier: %s, Item: %s, Diamond pity: %d" % [
+		stage,
+		readable_tier,
+		item_name,
+		GlobalPlayerData.chests_since_last_diamond
+	])
+	
+	return chosen_item_path
 
 func _ready() -> void:
 	collision_layer = 0
@@ -149,15 +199,25 @@ func _complete_opening() -> void:
 	_is_opened = true
 	progressBar.hide()
 	
+	# 重置当前箱内是否获得过钻石的标志
+	_diamond_looted_this_chest = false
+	
 	# 增加开启计数
 	GlobalPlayerData.opened_chests_count += 1
-	print("[CHEST] Chest opened! Total count this match: %d" % GlobalPlayerData.opened_chests_count)
 	
 	# 播放开启音效
 	_play_sfx("res://assets/audio/sfx/Explosion.wav")
 	
 	# 打开摸金界面（左右分屏）
 	_spawn_loot_ui()
+	
+	# 时序校正：在抽奖完毕后决定保底计数的重置或自增，确保自增和清零绝对逻辑严密
+	if _diamond_looted_this_chest:
+		GlobalPlayerData.chests_since_last_diamond = 0
+		print("[CHEST] Diamond obtained! Pity count reset to 0.")
+	else:
+		GlobalPlayerData.chests_since_last_diamond += 1
+		print("[CHEST] No diamond this chest. Pity count incremented to %d" % GlobalPlayerData.chests_since_last_diamond)
 	
 	# 动画效果：宝箱保持开启状态，直到玩家离开
 	sprite.region_rect = Rect2(64, 16, 16, 16) # 切换到开启状态的贴图（假设在 64,16）

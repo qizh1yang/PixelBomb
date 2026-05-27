@@ -8,8 +8,8 @@ extends Node
 class_name PowerUpSpawner
 
 # ── 配置 ──
-const DROP_CHANCE: float = 0.20   # 20% 增益道具掉落概率
-const CHEST_CHANCE: float = 0.05  # 5% 宝箱掉落概率
+const DROP_CHANCE: float = 0.45   # 45% 增益道具掉落概率
+const CHEST_CHANCE: float = 0.015  # 1.5% 宝箱掉落概率
 
 # ── 调试开关 ──
 const DEBUG_FORCE_CHEST: bool = false # 关闭强制生成
@@ -17,10 +17,10 @@ const DEBUG_FORCE_CHEST: bool = false # 关闭强制生成
 # ── 道具场景池（路径 + 权重 + 名称） ──
 const ITEM_POOL: Array = [
 	# [scene_path, weight, display_name]
-	["res://prefabs/items/ItemCount/item_count.tscn", 30, "炸弹+1"],
+	["res://prefabs/items/ItemCount/item_count.tscn", 35, "炸弹+1"],
 	["res://prefabs/items/ItemPower/item_power.tscn", 40, "威力+1"],
 	["res://prefabs/items/ItemSpeed/item_speed.tscn", 20, "速度UP"],
-	["res://prefabs/items/ItemShield/item_shield.tscn", 10, "护盾"],
+	["res://prefabs/items/ItemShield/item_shield.tscn", 5, "护盾"],
 ]
 
 const CHEST_SCENE_PATH: String = "res://prefabs/items/Chest/chest.tscn"
@@ -30,6 +30,7 @@ var _wall_layer: TileMapLayer = null
 var _parent_node: Node2D = null
 var _loaded_scenes: Dictionary = {}  # path -> PackedScene 缓存
 var _chest_scene: PackedScene = null
+var _destroyed_walls_count: int = 0  # 累计炸毁的墙壁数量
 
 # 初始化生成器
 func setup(wall_layer: TileMapLayer, parent_node: Node2D) -> void:
@@ -87,22 +88,24 @@ func _on_wall_destroyed(cell_pos: Vector2i) -> void:
 			net.request("Room.TriggerDrop", {"x": cell_pos.x, "y": cell_pos.y})
 		return
 
+	_destroyed_walls_count += 1
 	var roll = randf()
-	print("[POWERUP_SPAWNER] Wall destroyed at %s, roll: %.2f" % [cell_pos, roll])
+	var is_chest_allowed = (_destroyed_walls_count >= 18)
+	print("[POWERUP_SPAWNER] Wall destroyed at %s, roll: %.3f, wall_destroyed_count: %d, chest_allowed: %s" % [cell_pos, roll, _destroyed_walls_count, is_chest_allowed])
 	
 	# 统一概率轴：
-	# 0.00 ~ 0.05 -> 宝箱 (5%)
-	# 0.05 ~ 0.25 -> 局内道具 (20%)
-	# 0.25 ~ 1.00 -> 无掉落
+	# 0.000 ~ 0.015 -> 宝箱 (1.5%，但需炸毁墙体数 >= 18 才有几率掉落)
+	# 0.015 ~ 0.465 -> 局内道具 (45%)
+	# 0.465 ~ 1.000 -> 无掉落
 	
-	if DEBUG_FORCE_CHEST or roll < CHEST_CHANCE:
-		print("[POWERUP_SPAWNER] Chest roll success (roll < %.2f)" % CHEST_CHANCE)
+	if (DEBUG_FORCE_CHEST or roll < CHEST_CHANCE) and is_chest_allowed:
+		print("[POWERUP_SPAWNER] Chest roll success (roll < %.3f)" % CHEST_CHANCE)
 		_spawn_chest_at_cell(cell_pos)
-	elif roll < (CHEST_CHANCE + DROP_CHANCE):
-		print("[POWERUP_SPAWNER] Item roll success (%.2f < roll < %.2f)" % [CHEST_CHANCE, CHEST_CHANCE + DROP_CHANCE])
+	elif roll >= CHEST_CHANCE and roll < (CHEST_CHANCE + DROP_CHANCE):
+		print("[POWERUP_SPAWNER] Item roll success (%.3f < roll < %.3f)" % [CHEST_CHANCE, CHEST_CHANCE + DROP_CHANCE])
 		_spawn_item_at_cell(cell_pos)
 	else:
-		print("[POWERUP_SPAWNER] No drop this time.")
+		print("[POWERUP_SPAWNER] No drop this time. (Allowed chest: %s, count: %d)" % [is_chest_allowed, _destroyed_walls_count])
 
 # 生成宝箱
 func _spawn_chest_at_cell(cell_pos: Vector2i) -> void:

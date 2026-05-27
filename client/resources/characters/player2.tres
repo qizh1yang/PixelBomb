@@ -6,8 +6,8 @@
 script = ExtResource("1_script")
 character_id = "player2"
 char_index = 1
-display_name = "迅捷·破壁者"
-description = "牺牲了防御，换取极高的基础移动速度。"
+display_name = "红发男孩"
+description = "特性暂定"
 base_speed = 75.0
 base_bomb_cap = 1
 base_radius = 1

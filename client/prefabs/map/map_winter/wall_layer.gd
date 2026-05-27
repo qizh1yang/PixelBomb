@@ -6,7 +6,7 @@ signal wallDestroyed(cellPos: Vector2i)
 @export_group("Map Settings")
 @export var width: int = 26    # 扫描宽度
 @export var height: int = 26   # 扫描高度
-@export var destructible_rate: float = 0.8 # 基础填充率
+@export var destructible_rate: float = 0.75 # 基础填充率
 
 var indestructible_map := {} # 记录不可破坏墙的位置 Vector2i -> bool
 var _destructible_tiles := {} 

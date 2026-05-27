@@ -19,6 +19,8 @@ var player_name: String = "破壁者"
 
 # 局内统计：记录本局开启的宝箱数量
 var opened_chests_count: int = 0
+# 钻石装备软保底计数器：自上一次获得钻石装备以来开启的宝箱数量
+var chests_since_last_diamond: int = 0
 
 func _ready() -> void:
 	# 连接网络同步信号

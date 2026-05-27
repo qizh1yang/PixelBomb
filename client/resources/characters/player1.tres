@@ -6,8 +6,8 @@
 script = ExtResource("1_script")
 character_id = "player1"
 char_index = 0
-display_name = "先锋·破壁者"
-description = "各项属性均衡，适合新手上手的标准型号。"
+display_name = "绿蛙忍者"
+description = "特性暂定"
 base_speed = 75.0
 base_bomb_cap = 1
 base_radius = 1
