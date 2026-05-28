@@ -18,8 +18,7 @@ Thumbs.db
 *.import
 *.translation
 
-# exports (非常重要)
-client/export/
+# exports (web 导出文件通过 GitHub 同步到服务器)
 
 # web build output
 build/

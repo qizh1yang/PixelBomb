@@ -1,0 +1,12 @@
+{
+  "version": "d1c8f72",
+  "created_at": "2026-05-28T06:41:30.097Z",
+  "files": {
+    "pck": "game.d1c8f72.pck",
+    "wasm": "game.d1c8f72.wasm"
+  },
+  "fileSizes": {
+    "game.d1c8f72.pck": 10559064,
+    "game.d1c8f72.wasm": 36145869
+  }
+}
