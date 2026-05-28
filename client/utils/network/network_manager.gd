@@ -62,6 +62,17 @@ var http_client: HTTPRequest = null
 var server_base_url := "http://127.0.0.1:8080"
 var ws_url := "ws://127.0.0.1:8080/ws"
 
+
+func _detect_urls() -> void:
+	if OS.has_feature("web"):
+		var host = JavaScriptBridge.eval("window.location.host", true)
+		var protocol = JavaScriptBridge.eval("window.location.protocol", true)
+		var ws_protocol = "wss://" if protocol == "https:" else "ws://"
+		var http_protocol = "https://" if protocol == "https:" else "http://"
+		server_base_url = http_protocol + host
+		ws_url = ws_protocol + host + "/ws"
+		net_log("Web detected, server_base_url: %s, ws_url: %s" % [server_base_url, ws_url])
+
 var is_connected_to_host := false
 var my_id: String = ""
 var player_name: String = "Player"
@@ -73,6 +84,12 @@ var map_seed: int = 0
 var seed_received: bool = false
 var my_player_index: int = 0
 var selected_char_index: int = 0
+
+# ── [MAP CONFIG] Host 权威地图配置 (RoomSyncInfo 解析) ──
+var current_map_type: String = "CLASSIC"  # "CLASSIC" | "WINTER" | "PROCEDURAL"
+var current_shape_type: String = "circle" # "circle" | "hexagon" | "star" | "ring" | "cave"
+var current_map_size: String = "small"    # "small" | "medium" | "large"
+var host_uid: int = 0                      # 当前房主的 UID
 
 # 消息序列号与路由映射 (用于处理 Response)
 var last_msg_id: int = 0
@@ -98,6 +115,7 @@ func clean_id(val: Variant) -> String:
 # ── 生命周期 ──
 
 func _ready() -> void:
+	_detect_urls()
 	http_client = HTTPRequest.new()
 	add_child(http_client)
 	
@@ -355,11 +373,58 @@ func _dispatch_route_message(route: String, body: Variant) -> void:
 		"User.GetProfile":
 			profile_loaded.emit(body)
 		"onRoomUpdate":
-			room_players = body
-			players.clear()
-			for p in room_players:
-				players[clean_id(p.id)] = p
-			room_state_updated.emit(room_players)
+			# [NEW] 支持新版 RoomSyncInfo 格式（含 host_uid 和地图配置）
+			# 同时兼容旧版纯 Array 格式，确保向下兼容
+			if body is Dictionary and body.has("host_uid"):
+				# ── 新版 RoomSyncInfo 协议解析 ──
+				room_players = body.get("players", [])
+				if room_players == null: room_players = []
+				
+				# [MAP CONFIG] 提取并更新地图配置
+				var new_map_type: String = str(body.get("map_type", "CLASSIC"))
+				var new_shape: String = str(body.get("shape_type", "circle"))
+				var new_size: String = str(body.get("map_size", "small"))
+				var new_seed: int = int(body.get("seed", 0))
+				var new_host_uid: int = int(body.get("host_uid", 0))
+				net_log("[MAP-SYNC] onRoomUpdate: type=%s shape=%s size=%s seed=%d host=%d" % [new_map_type, new_shape, new_size, new_seed, new_host_uid])
+				
+				# [ROOM MAP VALIDATOR] 不合法的配置降级到安全默认值
+				var valid_map_types = ["CLASSIC", "WINTER", "PROCEDURAL"]
+				var valid_shapes = ["circle", "hexagon", "star", "ring", "cave"]
+				var valid_sizes = ["small", "medium", "large"]
+				if not new_map_type in valid_map_types: new_map_type = "CLASSIC"
+				if not new_shape in valid_shapes: new_shape = "circle"
+				if not new_size in valid_sizes: new_size = "small"
+				
+				current_map_type = new_map_type
+				current_shape_type = new_shape
+				current_map_size = new_size
+				if new_seed != 0: map_seed = new_seed
+				host_uid = new_host_uid
+				
+				# [HOST AUTHORITY] 动态计算并更新 is_host 状态
+				var was_host = is_host
+				is_host = (my_id != "" and clean_id(my_id) == str(new_host_uid))
+				
+				# 重建 players 字典
+				players.clear()
+				for p in room_players:
+					players[clean_id(p.id)] = p
+				
+				# 发出房间状态广播信号
+				room_state_updated.emit(room_players)
+				
+				# 若 is_host 状态发生变化，发出 host_updated 信号驱动 UI 刷新权限
+				if is_host != was_host:
+					host_updated.emit(is_host, str(new_host_uid))
+					net_log("Host status changed: is_host=%s, host_uid=%d" % [str(is_host), new_host_uid])
+			else:
+				# ── 旧版 Array 格式屟容 ──
+				room_players = body if body is Array else []
+				players.clear()
+				for p in room_players:
+					players[clean_id(p.id)] = p
+				room_state_updated.emit(room_players)
 		
 		# [NEW] 重连恢复响应
 		"Room.Resume":
@@ -639,3 +704,18 @@ func push_presets(presets: Array) -> void:
 
 func fetch_profile() -> void:
 	request("User.GetProfile", {})
+
+# [HOST AUTHORITY] Host 修改地图配置时调用，向服务端发起 Room.UpdateMapConfig 请求
+# 服务端会进行 HostUID 校验，只有真正的房主请求才会被接受
+func update_map_config(map_type: String = "", shape_type: String = "", map_size: String = "", seed: int = 0) -> void:
+	if not is_host:
+		net_warn("update_map_config called but is_host=false. Blocked client-side.")
+		return
+	var payload: Dictionary = {}
+	if map_type != "": payload["map_type"] = map_type
+	if shape_type != "": payload["shape_type"] = shape_type
+	if map_size != "": payload["map_size"] = map_size
+	if seed != 0: payload["seed"] = seed
+	if payload.is_empty(): return
+	request("Room.UpdateMapConfig", payload)
+	net_log("Host sent UpdateMapConfig: %s" % str(payload))

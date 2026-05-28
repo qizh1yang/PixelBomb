@@ -1,12 +1,12 @@
 {
-  "version": "d1c8f72",
-  "created_at": "2026-05-28T06:41:30.097Z",
+  "version": "b342f8e",
+  "created_at": "2026-05-28T08:55:10.938Z",
   "files": {
-    "pck": "game.d1c8f72.pck",
-    "wasm": "game.d1c8f72.wasm"
+    "pck": "game.b342f8e.pck",
+    "wasm": "game.b342f8e.wasm"
   },
   "fileSizes": {
-    "game.d1c8f72.pck": 10559064,
-    "game.d1c8f72.wasm": 36145869
+    "game.b342f8e.pck": 10559064,
+    "game.b342f8e.wasm": 36145869
   }
 }

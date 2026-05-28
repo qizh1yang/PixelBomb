@@ -233,18 +233,27 @@ func _tryEvacuate() -> void:
 		if isEvacuating: _cancelEvacuate()
 		return
 		
-	# 2. 区域检查（只有在中心撤离区内才允许）
+	# 2. 区域检查（优先支持动态撤离点，如果不存在则回退至地图正中心 3x3）
 	var can_evac = false
 	var gm = get_node_or_null("/root/GameMode")
 	if gm and gm.wall_layer:
-		var used_rect = gm.wall_layer.get_used_rect()
-		var center = used_rect.position + (used_rect.size / 2)
 		var player_cell = gm.wall_layer.local_to_map(gm.wall_layer.to_local(global_position))
 		
-		# 检查是否在中心 3x3 范围内 (1.5 距离)
-		if abs(player_cell.x - center.x) <= 1 and abs(player_cell.y - center.y) <= 1:
-			can_evac = true
+		var ext_cell = Vector2i(-999, -999)
+		if "extraction_point" in gm.wall_layer:
+			ext_cell = gm.wall_layer.extraction_point
 			
+		if ext_cell != Vector2i(-999, -999):
+			# 校验是否站在撤离点 3x3 (即 Chebyshev 距离 <= 1 范围内)
+			if abs(player_cell.x - ext_cell.x) <= 1 and abs(player_cell.y - ext_cell.y) <= 1:
+				can_evac = true
+		else:
+			# 经典回退保底（地图中心 3x3 区域）
+			var used_rect = gm.wall_layer.get_used_rect()
+			var center = used_rect.position + (used_rect.size / 2)
+			if abs(player_cell.x - center.x) <= 1 and abs(player_cell.y - center.y) <= 1:
+				can_evac = true
+				
 	if can_evac:
 		if not isEvacuating:
 			isEvacuating = true
@@ -254,6 +263,7 @@ func _tryEvacuate() -> void:
 	else:
 		if isEvacuating:
 			_cancelEvacuate()
+
 
 func _cancelEvacuate() -> void:
 	isEvacuating = false

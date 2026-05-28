@@ -1,0 +1,31 @@
+[gd_scene load_steps=3 format=3 uid="uid://ciygvw3c43hvs"]
+
+[ext_resource type="Script" path="res://test/test_procedural_map.gd" id="1_test"]
+[ext_resource type="PackedScene" uid="uid://cproceduralmap1" path="res://prefabs/map/procedural_map/procedural_map.tscn" id="2_pmap"]
+
+[node name="TestProceduralMap" type="Node2D"]
+script = ExtResource("1_test")
+
+[node name="ProceduralMap" parent="." instance=ExtResource("2_pmap")]
+show_debug_overlay = true
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(280, 280)
+zoom = Vector2(1.2, 1.2)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
+offset_left = 720.0
+offset_top = 10.0
+offset_right = 1140.0
+offset_bottom = 350.0
+color = Color(0, 0, 0, 0.82)
+
+[node name="StatusLabel" type="Label" parent="CanvasLayer"]
+offset_left = 730.0
+offset_top = 20.0
+offset_right = 1130.0
+offset_bottom = 340.0
+theme_override_font_sizes/font_size = 11
+text = "Map Debugger Info..."

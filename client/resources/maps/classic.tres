@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("2_script")
-map_id = "classic"
+map_id = "CLASSIC"
 display_name = "碎空岛·原野"
 description = "最平衡的竞技场，适合所有战术。"
 map_scene = ExtResource("1_scene")

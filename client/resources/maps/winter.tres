@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("2_script")
-map_id = "winter"
+map_id = "WINTER"
 display_name = "碎空岛·极寒"
 description = "被积雪覆盖的岛屿，某些区域可能存在湿滑效果。"
 map_scene = ExtResource("1_scene")

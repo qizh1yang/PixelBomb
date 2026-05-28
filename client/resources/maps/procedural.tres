@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="MapResource" load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://cproceduralmap1" path="res://prefabs/map/procedural_map/procedural_map.tscn" id="1_scene"]
+[ext_resource type="Script" path="res://resources/maps/map_base.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+map_id = "PROCEDURAL"
+display_name = "随机地图"
+description = "每次生成独一无二的战场，支持圆形、六边形、星形等多种形状。"
+map_scene = ExtResource("1_scene")
+width = 31
+height = 31
+wall_density = 0.38
+map_theme_color = Color(1, 1, 1, 1)
+is_procedural = true
+default_shape = "circle"
+default_map_size = "small"
+custom_rules = {}

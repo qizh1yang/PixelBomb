@@ -56,6 +56,29 @@ type (
 		Items               map[string]*WorldItemState
 		TriggeredDrops      map[string]bool // Track coordinates that already triggered drop rolls
 		DestroyedWallsCount int             // 累计炸毁的墙壁数量
+		// [HOST AUTHORITY] 房主权威地图配置
+		HostUID   int64  // 当前房主玩家的 UID
+		MapType   string // "CLASSIC" | "WINTER" | "PROCEDURAL"
+		ShapeType string // "circle" | "hexagon" | "star" | "ring" | "cave"
+		MapSize   string // "small" | "medium" | "large"
+	}
+
+	// RoomSyncInfo 是 onRoomUpdate 广播的完整数据包，包含玩家列表与地图配置
+	RoomSyncInfo struct {
+		Players   []*NanoPlayer `json:"players"`
+		HostUID   int64         `json:"host_uid"`
+		MapType   string        `json:"map_type"`
+		ShapeType string        `json:"shape_type"`
+		MapSize   string        `json:"map_size"`
+		Seed      int64         `json:"seed"`
+	}
+
+	// UpdateMapConfigRequest 是客户端 Host 修改地图配置时发送的请求体
+	UpdateMapConfigRequest struct {
+		MapType   string `json:"map_type"`
+		ShapeType string `json:"shape_type"`
+		MapSize   string `json:"map_size"`
+		Seed      int64  `json:"seed"`
 	}
 
 	JoinRequest struct {
@@ -229,9 +252,17 @@ func (c *RoomComponent) syncRoom(r *NanoRoom) {
 	for _, p := range r.Players {
 		playerList = append(playerList, p)
 	}
+	syncInfo := &RoomSyncInfo{
+		Players:   playerList,
+		HostUID:   r.HostUID,
+		MapType:   r.MapType,
+		ShapeType: r.ShapeType,
+		MapSize:   r.MapSize,
+		Seed:      r.Seed,
+	}
 	c.lock.RUnlock()
 
-	r.Group.Broadcast("onRoomUpdate", playerList)
+	r.Group.Broadcast("onRoomUpdate", syncInfo)
 }
 
 // Create handles room creation
@@ -253,6 +284,11 @@ func (c *RoomComponent) Create(s *session.Session, msg *CreateRequest) error {
 		DeadPlayers:    make(map[int64]bool),
 		Items:          make(map[string]*WorldItemState),
 		TriggeredDrops: make(map[string]bool),
+		// [HOST AUTHORITY] 新建房间：初始化房主与默认地图配置
+		HostUID:   s.UID(),
+		MapType:   "CLASSIC",
+		ShapeType: "circle",
+		MapSize:   "small",
 	}
 	c.rooms[roomID] = r
 	c.lock.Unlock()
@@ -650,9 +686,18 @@ func (c *RoomComponent) doLeave(s *session.Session) {
 	c.lock.Lock()
 	r, ok := c.rooms[roomID]
 	if ok && r.Players != nil {
-		delete(r.Players, s.UID())
+		leavingUID := s.UID()
+		delete(r.Players, leavingUID)
 		r.Group.Leave(s)
 		s.Remove("room_id")
+		// [HOST AUTHORITY] Host Migration: 若离开的是房主，迁移主权
+		if r.HostUID == leavingUID && len(r.Players) > 0 {
+			for nextUID := range r.Players {
+				r.HostUID = nextUID
+				log.Printf("[Nano] Host migrated from %d to %d in room %s", leavingUID, nextUID, roomID)
+				break
+			}
+		}
 	}
 	c.lock.Unlock()
 
@@ -676,6 +721,14 @@ func (c *RoomComponent) doLeaveByUID(uid int64, roomID string) {
 	r, ok := c.rooms[roomID]
 	if ok && r.Players != nil {
 		delete(r.Players, uid)
+		// [HOST AUTHORITY] Host Migration: 若离开的是房主，迁移主权
+		if r.HostUID == uid && len(r.Players) > 0 {
+			for nextUID := range r.Players {
+				r.HostUID = nextUID
+				log.Printf("[Nano] Host migrated (sweeper) from %d to %d in room %s", uid, nextUID, roomID)
+				break
+			}
+		}
 	}
 	c.lock.Unlock()
 
@@ -1268,3 +1321,76 @@ func (c *RoomComponent) Resume(s *session.Session, msg *ResumeRequest) error {
 // min returns the smaller of two integers (polyfill for Go < 1.21 if needed).
 // Remove this if your Go version already has the builtin.
 // func min(a, b int) int { if a < b { return a }; return b }
+
+// UpdateMapConfig handles room map configuration changes from the host.
+// Route: Room.UpdateMapConfig
+// [HOST AUTHORITY] 严格校验：只有当前房主（HostUID）才能修改地图配置，其余请求全部被拦截。
+func (c *RoomComponent) UpdateMapConfig(s *session.Session, msg *UpdateMapConfigRequest) error {
+	roomIDVal := s.Value("room_id")
+	if roomIDVal == nil {
+		return errors.New("not in a room")
+	}
+	roomID := roomIDVal.(string)
+
+	c.lock.Lock()
+	r, ok := c.rooms[roomID]
+	if !ok {
+		c.lock.Unlock()
+		return errors.New("room not found")
+	}
+
+	// [HOST AUTHORITY CHECK] 只允许当前 HostUID 等于发起者 UID 的请求通过
+	if r.HostUID != s.UID() {
+		c.lock.Unlock()
+		log.Printf("[Nano] UpdateMapConfig REJECTED: UID %d is not host (HostUID=%d) in room %s", s.UID(), r.HostUID, roomID)
+		return s.Response(map[string]string{
+			"status":  "error",
+			"message": "unauthorized: only host can modify map config",
+		})
+	}
+
+	// [VALIDATION] 验证地图类型合法性
+	validMapTypes := map[string]bool{"CLASSIC": true, "WINTER": true, "PROCEDURAL": true}
+	if msg.MapType != "" && !validMapTypes[msg.MapType] {
+		c.lock.Unlock()
+		return s.Response(map[string]string{"status": "error", "message": "invalid map_type"})
+	}
+
+	// [VALIDATION] 验证 Shape 合法性
+	validShapes := map[string]bool{"circle": true, "hexagon": true, "star": true, "ring": true, "cave": true}
+	if msg.ShapeType != "" && !validShapes[msg.ShapeType] {
+		c.lock.Unlock()
+		return s.Response(map[string]string{"status": "error", "message": "invalid shape_type"})
+	}
+
+	// [VALIDATION] 验证尺寸合法性
+	validSizes := map[string]bool{"small": true, "medium": true, "large": true}
+	if msg.MapSize != "" && !validSizes[msg.MapSize] {
+		c.lock.Unlock()
+		return s.Response(map[string]string{"status": "error", "message": "invalid map_size"})
+	}
+
+	// 通过所有校验，更新房间地图参数
+	if msg.MapType != "" {
+		r.MapType = msg.MapType
+	}
+	if msg.ShapeType != "" {
+		r.ShapeType = msg.ShapeType
+	}
+	if msg.MapSize != "" {
+		r.MapSize = msg.MapSize
+	}
+	if msg.Seed != 0 {
+		r.Seed = msg.Seed
+	}
+
+	log.Printf("[Nano] Host %d updated map config in room %s: type=%s shape=%s size=%s seed=%d",
+		s.UID(), roomID, r.MapType, r.ShapeType, r.MapSize, r.Seed)
+	c.lock.Unlock()
+
+	// 广播新版 RoomSyncInfo 到全房间，触发所有客户端实时同步
+	c.syncRoom(r)
+
+	return s.Response(map[string]string{"status": "ok"})
+}
+

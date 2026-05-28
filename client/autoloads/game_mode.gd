@@ -43,12 +43,24 @@ var lastSentPos: Vector2 = Vector2.ZERO
 var lastSentState: String = ""
 var lastSentDir: String = ""
 
-var selectedMapName: String = "classic"
+var selectedMapName: String = "CLASSIC"
 
 func get_selected_map_path() -> String:
-	var map_res = MapRegistry.get_map(selectedMapName)
-	if map_res: return map_res.map_scene.resource_path
-	return "res://prefabs/map/map_classic/map_classic.tscn"
+	var net = get_node_or_null("/root/NetworkManager")
+	var map_type: String = selectedMapName
+	if net and not GameMode.is_offline_mode:
+		map_type = net.current_map_type
+	print("[GameMode] get_selected_map_path: map_type=%s offline=%s" % [map_type, str(is_offline_mode)])
+	return MapFactory.get_map_scene_path(map_type)
+
+## 构建当前地图配置字典，传递给 GameStage.setupMap
+func get_map_config() -> Dictionary:
+	var net = get_node_or_null("/root/NetworkManager")
+	if not net or is_offline_mode:
+		return {"map_type": selectedMapName, "shape_type": "circle", "map_size": "small", "seed": map_seed}
+	var cfg = {"map_type": net.current_map_type, "shape_type": net.current_shape_type, "map_size": net.current_map_size, "seed": net.map_seed}
+	print("[GameMode] get_map_config: %s" % str(cfg))
+	return cfg
 
 
 # ══════════════════════════════════════════════════════
@@ -66,7 +78,9 @@ func start_game() -> void:
 		game_stage.stageReady.connect(_onStageReady, CONNECT_ONE_SHOT)
 	get_tree().root.add_child(game_stage)
 	var mapPath: String = get_selected_map_path()
-	game_stage.setupMap(mapPath)
+	var mapConfig = get_map_config()
+	print("[GameMode] start_game: mapPath=%s config=%s" % [mapPath, str(mapConfig)])
+	game_stage.setupMap(mapPath, mapConfig)
 	_get_references_from_stage()
 	_connectNetwork()
 
@@ -135,7 +149,11 @@ func prepare_for_game() -> void:
 	is_offline_mode = false
 	GlobalPlayerData.opened_chests_count = 0
 	var net = get_node_or_null("/root/NetworkManager")
-	if net: map_seed = net.map_seed
+	if net:
+		map_seed = net.map_seed
+		if net.current_map_type != "":
+			selectedMapName = net.current_map_type
+			print("[GameMode] prepare_for_game: synced type=%s shape=%s size=%s seed=%d" % [net.current_map_type, net.current_shape_type, net.current_map_size, net.map_seed])
 
 func init_from_stage(stage: Node2D) -> void:
 	game_stage = stage

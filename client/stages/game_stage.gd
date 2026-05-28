@@ -28,7 +28,7 @@ func _ready() -> void:
 	_playEntranceTransition()
 
 	var is_standalone = (get_parent() == get_tree().root)
-	
+
 	if gm:
 		if is_standalone and not gm.is_game_active:
 			print("[STAGE] Standalone detected, loading default map...")
@@ -37,15 +37,17 @@ func _ready() -> void:
 			gm.current_stage = gm.Stage.PLAYING
 			gm.is_offline_mode = true
 			var defaultMap: String = gm.get_selected_map_path()
-			setupMap(defaultMap)
+			var cfg = gm.get_map_config()
+			setupMap(defaultMap, cfg)
 		elif not mapInstance:
 			# 在正常网络流程中，如果进入场景时地图还没加载，则主动加载一次
 			var defaultMap: String = gm.get_selected_map_path()
-			setupMap(defaultMap)
-		
+			var cfg = gm.get_map_config()
+			setupMap(defaultMap, cfg)
+
 		# 无论如何，同步引用
 		gm.init_from_stage(self)
-		
+
 		# 监听结算信号
 		if not gm.gameOverReceived.is_connected(_onGameOver):
 			gm.gameOverReceived.connect(_onGameOver)
@@ -76,7 +78,8 @@ func _playEntranceTransition() -> void:
 
 # 加载并实例化地图场景
 # mapPath：地图场景资源路径
-func setupMap(mapPath: String) -> void:
+# map_config：程序化地图参数 Dictionary { "map_type", "shape_type", "map_size", "seed" }
+func setupMap(mapPath: String, map_config: Dictionary = {}) -> void:
 	if mapInstance:
 		mapInstance.queue_free()
 
@@ -90,7 +93,33 @@ func setupMap(mapPath: String) -> void:
 	add_child(mapInstance)
 	move_child(mapInstance, 0)
 
-	print("[STAGE] Map '%s' loaded and instantiated" % mapPath)
+	# [MAP CONFIG] 将 Host 权威的程序化地图参数注入到 ProceduralMap 实例
+	_apply_map_config(mapInstance, map_config)
+
+	print("[STAGE] Map '%s' loaded and instantiated (config: %s)" % [mapPath, str(map_config)])
+
+## 将联机/离线地图配置参数注入到地图实例
+func _apply_map_config(map_node: Node2D, config: Dictionary) -> void:
+	if config.is_empty():
+		return
+
+	var map_type = config.get("map_type", "")
+	print("[STAGE] Applying map config: type=%s shape=%s size=%s seed=%d" % [
+		map_type,
+		config.get("shape_type", ""),
+		config.get("map_size", ""),
+		config.get("seed", 0)
+	])
+
+	# 如果是 ProceduralMap，设置生成参数
+	if map_type == "PROCEDURAL" and map_node.has_method("_generate_map"):
+		if config.has("shape_type") and config["shape_type"] != "":
+			map_node.shape_type = config["shape_type"]
+		if config.has("map_size") and config["map_size"] != "":
+			map_node.map_size = config["map_size"]
+		# 标记为已通过外部注入参数，防止 _ready 重复生成
+		map_node._config_injected = true
+		print("[STAGE] Injected procedural map config into ProceduralMap node")
 
 # 播放对局开始倒计时动画
 func startCountdown() -> void:
@@ -133,30 +162,30 @@ func _updateDebugInfo() -> void:
 
 func show_evac_zone() -> void:
 	print("[STAGE] 正在尝试在地图中心激活撤离点...")
-	
+
 	var cellSize: float = 16.0 # 策划书定义的 16x16
-	
+
 	if gm and gm.wall_layer:
 		# 自动适配：根据地图实际大小的一半来确定中心
 		var used_rect = gm.wall_layer.get_used_rect()
 		var centerCell = used_rect.position + (used_rect.size / 2)
-		
+
 		# 获取该格子的局部坐标
 		var local_pos = gm.wall_layer.map_to_local(centerCell)
-		
+
 		var marker = ColorRect.new()
 		marker.name = "EvacZone"
 		# 将标记添加为地图层的子节点，这样坐标和缩放会自动同步
 		gm.wall_layer.add_child(marker)
-		
+
 		marker.z_index = 5
 		marker.color = Color(0, 1, 0, 0.4)
-		
+
 		# 撤离区覆盖 3x3 个格子
 		marker.size = Vector2(cellSize * 3, cellSize * 3)
 		# map_to_local 是格子中心，需要向左上角偏移 1.5 个格子宽度以对齐
 		marker.position = local_pos - Vector2(cellSize * 1.5, cellSize * 1.5)
-		
+
 		var label = Label.new()
 		marker.add_child(label)
 		label.text = "撤离点"
@@ -164,7 +193,7 @@ func show_evac_zone() -> void:
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		label.size = marker.size
 		label.add_theme_font_size_override("font_size", 8)
-		
+
 		print("[STAGE] 撤离点已创建在地图格子: %s, 局部坐标: %s" % [centerCell, marker.position])
 	else:
 		print("[STAGE] 错误：无法获取 wall_layer，撤离点创建失败")
