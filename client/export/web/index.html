@@ -1,247 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-    <title>PixelBomb</title>
-    <style>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>PixelBomb</title>
+		<style>
 html, body, #canvas {
-    margin: 0;
-    padding: 0;
-    border: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
 }
 
 body {
-    color: white;
-    background-color: black;
-    overflow: hidden;
-    touch-action: none;
+	color: white;
+	background-color: black;
+	overflow: hidden;
+	touch-action: none;
 }
 
 #canvas {
-    display: block;
+	display: block;
 }
 
 #canvas:focus {
-    outline: none;
+	outline: none;
 }
 
 #status, #status-splash, #status-progress {
-    position: absolute;
-    left: 0;
-    right: 0;
+	position: absolute;
+	left: 0;
+	right: 0;
 }
 
 #status, #status-splash {
-    top: 0;
-    bottom: 0;
+	top: 0;
+	bottom: 0;
 }
 
 #status {
-    background-color: #242424;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    visibility: hidden;
+	background-color: #242424;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	visibility: hidden;
 }
 
 #status-splash {
-    max-height: 100%;
-    max-width: 100%;
-    margin: auto;
+	max-height: 100%;
+	max-width: 100%;
+	margin: auto;
 }
 
 #status-splash.show-image--false {
-    display: none;
+	display: none;
 }
 
 #status-splash.fullsize--true {
-    height: 100%;
-    width: 100%;
-    object-fit: contain;
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
 }
 
 #status-splash.use-filter--false {
-    image-rendering: pixelated;
+	image-rendering: pixelated;
 }
 
 #status-progress, #status-notice {
-    display: none;
+	display: none;
 }
 
 #status-progress {
-    bottom: 10%;
-    width: 50%;
-    margin: 0 auto;
+	bottom: 10%;
+	width: 50%;
+	margin: 0 auto;
 }
 
 #status-notice {
-    background-color: #5b3943;
-    border-radius: 0.5rem;
-    border: 1px solid #9b3943;
-    color: #e0e0e0;
-    font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
-    line-height: 1.3;
-    margin: 0 2rem;
-    overflow: hidden;
-    padding: 1rem;
-    text-align: center;
-    z-index: 1;
+	background-color: #5b3943;
+	border-radius: 0.5rem;
+	border: 1px solid #9b3943;
+	color: #e0e0e0;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	line-height: 1.3;
+	margin: 0 2rem;
+	overflow: hidden;
+	padding: 1rem;
+	text-align: center;
+	z-index: 1;
 }
-    </style>
-    <link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
-    <link rel="apple-touch-icon" href="index.apple-touch-icon.png" />
-</head>
-<body>
-    <canvas id="canvas">
-        Your browser does not support the canvas tag.
-    </canvas>
+		</style>
+		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 
-    <noscript>
-        Your browser does not support JavaScript.
-    </noscript>
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
 
-    <div id="status">
-        <img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
-        <progress id="status-progress"></progress>
-        <div id="status-notice"></div>
-    </div>
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
 
-    <script>
-    // Set to your CDN origin to prefix all versioned resource URLs.
-    window.__CDN_BASE__ = '';
-    </script>
+		<div id="status">
+			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
+			<progress id="status-progress"></progress>
+			<div id="status-notice"></div>
+		</div>
 
-    <script src="index.js"></script>
+		<script src="index.js"></script>
+		<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":17707012,"index.wasm":36145869},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_THREADS_ENABLED = false;
+const engine = new Engine(GODOT_CONFIG);
 
-    <script>
-/**
- * PixelBomb — 免清缓存热更新引导
- *
- * 1. 检测 ?dev=1 开发模式
- * 2. fetch /manifest.json (cache-busted)
- * 3. 动态设置 GODOT_CONFIG (版本化资源)
- * 4. 启动 Godot 引擎
- * 5. 失败 fallback 到 index.pck / index.wasm
- */
 (function () {
-    'use strict';
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const statusNotice = document.getElementById('status-notice');
 
-    var urlParams = new URLSearchParams(window.location.search);
-    var IS_DEV = urlParams.has('dev');
-    if (IS_DEV) console.log('[PixelBomb] 开发模式');
+	let initializing = true;
+	let statusMode = '';
 
-    var CDN_BASE = (window.__CDN_BASE__ || '').replace(/\/+$/, '');
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			statusOverlay.remove();
+			initializing = false;
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		statusMode = mode;
+	}
 
-    var GODOT_CONFIG = {
-        "args": [],
-        "canvasResizePolicy": 2,
-        "emscriptenPoolSize": 8,
-        "ensureCrossOriginIsolationHeaders": false,
-        "executable": "index",
-        "experimentalVK": false,
-        "fileSizes": { "index.pck": 0, "index.wasm": 0 },
-        "focusCanvas": true,
-        "gdextensionLibs": [],
-        "godotPoolSize": 4
-    };
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
 
-    var GODOT_THREADS_ENABLED = false;
-    var engine = null;
+	function displayFailureNotice(err) {
+		console.error(err);
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		setStatusMode('notice');
+		initializing = false;
+	}
 
-    var statusOverlay = document.getElementById('status');
-    var statusProgress = document.getElementById('status-progress');
-    var statusNotice = document.getElementById('status-notice');
-    var initializing = true;
-    var statusMode = '';
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
 
-    function setStatusMode(mode) {
-        if (statusMode === mode || !initializing) return;
-        if (mode === 'hidden') { statusOverlay.remove(); initializing = false; return; }
-        statusOverlay.style.visibility = 'visible';
-        statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
-        statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
-        statusMode = mode;
-    }
-
-    function setStatusNotice(text) {
-        while (statusNotice.lastChild) statusNotice.removeChild(statusNotice.lastChild);
-        text.split('\n').forEach(function (line) {
-            statusNotice.appendChild(document.createTextNode(line));
-            statusNotice.appendChild(document.createElement('br'));
-        });
-    }
-
-    function displayFailureNotice(err) {
-        console.error(err);
-        var msg = (err instanceof Error) ? err.message : (typeof err === 'string' ? err : 'Unknown error');
-        setStatusNotice(msg);
-        setStatusMode('notice');
-        initializing = false;
-    }
-
-    function applyManifest(manifest) {
-        if (!manifest || !manifest.files) return;
-        if (manifest.files.wasm) {
-            GODOT_CONFIG.executable = manifest.files.wasm.replace(/\.wasm$/, '');
-        }
-        GODOT_CONFIG.fileSizes = {};
-        if (manifest.fileSizes) {
-            for (var k in manifest.fileSizes) {
-                if (manifest.fileSizes.hasOwnProperty(k)) GODOT_CONFIG.fileSizes[k] = manifest.fileSizes[k];
-            }
-        }
-        window.__GAME_VERSION__ = manifest.version;
-        window.__GAME_MANIFEST__ = manifest;
-        console.log('[PixelBomb] 版本: ' + manifest.version + ' | pck: ' + (manifest.files.pck || 'default'));
-    }
-
-    function startGodotEngine() {
-        engine = new Engine(GODOT_CONFIG);
-
-        var missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
-
-        if (missing.length !== 0) {
-            if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
-                var p;
-                try { p = navigator.serviceWorker.getRegistration(); } catch (e) { p = Promise.reject(e); }
-                Promise.race([
-                    p.then(function (r) {
-                        if (r != null) return Promise.reject(new Error('SW exists'));
-                        return r;
-                    }).then(function () { return engine.installServiceWorker(); }),
-                    new Promise(function (resolve) { setTimeout(resolve, 2000); })
-                ]).then(function () { window.location.reload(); })
-                  .catch(function (e) { console.error(e); });
-            } else {
-                displayFailureNotice('Error\nMissing features:\n' + missing.join('\n'));
-            }
-            return;
-        }
-
-        setStatusMode('progress');
-        engine.startGame({
-            'onProgress': function (current, total) {
-                if (current > 0 && total > 0) { statusProgress.value = current; statusProgress.max = total; }
-                else { statusProgress.removeAttribute('value'); statusProgress.removeAttribute('max'); }
-            }
-        }).then(function () { setStatusMode('hidden'); }, displayFailureNotice);
-    }
-
-    function bootstrap() {
-        var cacheParam = IS_DEV ? 'dev=' + Date.now() : 'v=' + Date.now();
-        var fetchOpts = IS_DEV ? { cache: 'no-store' } : { cache: 'no-cache' };
-
-        fetch('/manifest.json?' + cacheParam, fetchOpts)
-            .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
-            .then(applyManifest)
-            .catch(function (err) { console.warn('[PixelBomb] manifest 失败, fallback: ' + err.message); })
-            .finally(startGodotEngine);
-    }
-
-    bootstrap();
-})();
-    </script>
-</body>
+	if (missing.length !== 0) {
+		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+			let serviceWorkerRegistrationPromise;
+			try {
+				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+			} catch (err) {
+				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+			}
+			// There's a chance that installing the service worker would fix the issue
+			Promise.race([
+				serviceWorkerRegistrationPromise.then((registration) => {
+					if (registration != null) {
+						return Promise.reject(new Error('Service worker already exists.'));
+					}
+					return registration;
+				}).then(() => engine.installServiceWorker()),
+				// For some reason, `getRegistration()` can stall
+				new Promise((resolve) => {
+					setTimeout(() => resolve(), 2000);
+				}),
+			]).then(() => {
+				// Reload if there was no error.
+				window.location.reload();
+			}).catch((err) => {
+				console.error('Error while registering service worker:', err);
+			});
+		} else {
+			// Display the message as usual
+			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			displayFailureNotice(missingMsg + missing.join('\n'));
+		}
+	} else {
+		setStatusMode('progress');
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					statusProgress.value = current;
+					statusProgress.max = total;
+				} else {
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
+				}
+			},
+		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
 </html>
+
