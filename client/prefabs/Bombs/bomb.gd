@@ -24,9 +24,11 @@ class_name Bomb
 func _ready() -> void:
 	add_to_group("Bomb")
 	flashTimer.timeout.connect(func(): $Sprite2D/Flash.flash())
+
+	# 始终启动引信定时器作为兜底：在线模式由服务端权威引爆（is_exploded 防止重复触发）
 	fuseTimer.timeout.connect(explode)
-	flashTimer.start()
 	fuseTimer.start()
+	flashTimer.start()
 
 var is_exploded: bool = false
 
@@ -36,7 +38,20 @@ func explode() -> void:
 	is_exploded = true
 	if is_instance_valid(flashTimer): flashTimer.stop()
 	if is_instance_valid(fuseTimer): fuseTimer.stop()
-	
+
+	# 炸弹炸毁动画：渐隐 + 缩放消失
+	_set_bomb_immune()
+	var tween := create_tween()
+	tween.tween_property($Sprite2D, "modulate:a", 0.0, 0.15)
+	tween.parallel().tween_property($Sprite2D, "scale", Vector2(1.5, 1.5), 0.15)
+	tween.tween_callback(_do_explode)
+
+func _set_bomb_immune() -> void:
+	# 爆炸瞬间碰撞体失效，防止玩家撞到正在炸毁的炸弹
+	if has_node("CollisionShape2D"):
+		$CollisionShape2D.set_deferred("disabled", true)
+
+func _do_explode() -> void:
 	var centerCell: Vector2i = wallLayer.local_to_map(wallLayer.to_local(global_position))
 	spawnExplosionCenter(centerCell)
 

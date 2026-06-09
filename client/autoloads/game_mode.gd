@@ -119,6 +119,10 @@ func _connectNetwork() -> void:
 			net.game_state_resumed.connect(_on_game_state_resumed)
 
 func cleanup_game() -> void:
+	if TutorialManager:
+		TutorialManager.clear_all_tutorials()
+		TutorialManager.force_tutorial = false
+		
 	is_game_active = false
 	current_stage = Stage.LOBBY
 	players.clear()
@@ -148,6 +152,8 @@ func prepare_for_game() -> void:
 	is_game_active = true
 	is_offline_mode = false
 	GlobalPlayerData.opened_chests_count = 0
+	# 立即重连网络消息监听，防止 cleanup_game 断开后丢失服务端紧跟着发来的 onPlayerStats
+	_connectNetwork()
 	var net = get_node_or_null("/root/NetworkManager")
 	if net:
 		map_seed = net.map_seed
@@ -162,8 +168,10 @@ func init_from_stage(stage: Node2D) -> void:
 
 func _onMapGenerated(seedVal: int) -> void:
 	map_seed = seedVal
-	if map_instance and "is_offline_mode" in map_instance:
-		is_offline_mode = map_instance.is_offline_mode
+	# 仅在地图确认离线模式时覆盖，绝不将联机模式错误切回离线
+	if map_instance and "is_offline_mode" in map_instance and map_instance.is_offline_mode:
+		is_offline_mode = true
+		print("[GameMode] Map confirmed offline mode")
 	mapGenerated.emit()
 	_spawnLocalPlayer()
 	_syncExistingPlayers()
@@ -205,16 +213,7 @@ func _spawnLocalPlayer() -> void:
 		var idx: int = spawn_idx % cells.size()
 		_setPlayerToCell(p, cells[idx])
 		
-		# 标注修改点：本地生成位置修改为对应的 spawn_index 角落
-		print("[SPAWN] Local player spawned at corner cell index: ", idx)
-		
-		NetworkManager.request("User.Auth", {
-			"username": net.player_name, 
-			"password": "",
-			"x": p.global_position.x, 
-			"y": p.global_position.y,
-			"char": charIdx
-		})
+		print("[SPAWN] Local player spawned at corner cell index: ", idx, " pos=", p.global_position)
 
 	# 核心修复：玩家生成后，立刻触发背包将属性上限同步给玩家控制器，确保战前配备的物品加成生效
 	var backpack_node = get_tree().get_first_node_in_group("Backpack")
@@ -294,8 +293,18 @@ func _getRandomCornerCells() -> Array[Vector2i]:
 	if wall_layer:
 		if wall_layer.get("width"): w = wall_layer.width
 		if wall_layer.get("height"): h = wall_layer.height
-	var left: int = 1; var top: int = 1; var right: int = w - 2; var bottom: int = h - 2
-	return [Vector2i(left, top), Vector2i(right, top), Vector2i(left, bottom), Vector2i(right, bottom)]
+	if selectedMapName == "CLASSIC":
+		var cx: int = w / 2
+		var cy: int = h / 2
+		return [
+			Vector2i(cx, 1),        # 上边缘出生点
+			Vector2i(cx, h - 2),    # 下边缘出生点
+			Vector2i(1, cy),        # 左边缘出生点
+			Vector2i(w - 2, cy)     # 右边缘出生点
+		]
+	else:
+		var left: int = 1; var top: int = 1; var right: int = w - 2; var bottom: int = h - 2
+		return [Vector2i(left, top), Vector2i(right, top), Vector2i(left, bottom), Vector2i(right, bottom)]
 
 func _setPlayerToCell(player: Node2D, cell: Vector2i) -> void:
 	if wall_layer:
@@ -405,16 +414,29 @@ func _onNetworkMessage(route: String, data: Variant) -> void:
 			var pid = NetworkManager.clean_id(data.get("id", ""))
 			if players.has(pid): players[pid].hide()
 			if pid == get_local_player_id(): _finalizeMatchSettlement(true)
+		"onEvacFailed":
+			var reason = data.get("reason", "")
+			var message = data.get("message", "撤离失败")
+			print("[GAME] Evacuation failed: %s — %s" % [reason, message])
+			if is_instance_valid(hud) and hud.has_method("showNotification"):
+				hud.showNotification(message)
 		"onPlayerDie":
 			var pid = NetworkManager.clean_id(data.get("id", ""))
+			print("[GAME] onPlayerDie received: pid=%s my_id=%s in_players=%s" % [pid, NetworkManager.my_id, str(players.has(pid))])
 			if players.has(pid):
 				var p = players[pid]
 				if p.has_method("die") and not p.isDead:
+					print("[GAME] Calling die() on player %s" % pid)
 					p.die()
+				else:
+					print("[GAME] Skip die: has_method=%s isDead=%s" % [str(p.has_method("die")), str(p.isDead)])
 				playerDied.emit(pid)
 				_checkGameOver()
+			else:
+				print("[GAME] onPlayerDie: player %s not found! keys=%s" % [pid, str(players.keys())])
 		"onShieldLost":
 			var pid = NetworkManager.clean_id(data.get("id", ""))
+			print("[GAME] onShieldLost received: pid=%s" % pid)
 			if pid != "" and players.has(pid):
 				var p = players[pid]
 				if p.has_method("lose_shield"):
@@ -438,18 +460,15 @@ func _onNetworkMessage(route: String, data: Variant) -> void:
 				pid = NetworkManager.clean_id(data.get("id", ""))
 			var itemID = NetworkManager.clean_id(data.get("id", ""))
 			print("[NETWORK] Player %s picked up item: %s" % [pid, itemID])
-			
-			# 如果是本地玩家拾取，应用道具效果并播放拾取特效
-			if pid == get_local_player_id():
-				var item = items.get(itemID)
-				if is_instance_valid(item):
-					var lp = get_local_player()
-					if lp:
-						item._applyEffect(lp)
-					item._playPickupEffect()
-			
-			# 清除全局世界道具
+
+			# 移除世界道具（所有玩家统一处理）
 			_removeWorldItem(itemID)
+
+			# 本地玩家已在 _onBodyEntered 乐观应用；此处兜底非本地玩家表现清理
+			if pid != get_local_player_id():
+				var item = items.get(itemID)
+				if is_instance_valid(item) and item.has_method("_playPickupEffect"):
+					item._playPickupEffect()
 		"onPlayerStats":
 			var pid = NetworkManager.clean_id(data.get("id", ""))
 			var stats = data.get("stats", {})
@@ -472,6 +491,11 @@ func _finalizeMatchSettlement(isSuccess: bool) -> void:
 	print("[GameMode] Finalizing Match Settlement. Success: ", isSuccess)
 	current_stage = Stage.SETTLEMENT
 	is_game_active = false
+	
+	# ── [NEW] 新手教程模式：跳过背包装备同步和联网结算，不污染局外数据 ──
+	if TutorialManager and TutorialManager.force_tutorial:
+		gameOverReceived.emit(isSuccess)
+		return
 	
 	# 提取背包物品并同步到服务器
 	var backpack_node = get_tree().get_first_node_in_group("Backpack")

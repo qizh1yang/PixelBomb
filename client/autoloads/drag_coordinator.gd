@@ -36,6 +36,11 @@ func transfer(target_container: Control, grid_pos: Vector2i, is_special: bool = 
 	else:
 		target_container.placeItem(dragged_item, grid_pos)
 
+	# 跨容器放置成功后，如果目标是背包，则关闭背包引导提示
+	if target_container.is_in_group("Backpack"):
+		if TutorialManager:
+			TutorialManager.hide_tutorial("chest_near")
+
 	# 3. place 成功后：清理源容器中的数据与引用
 	if is_instance_valid(source_container) and source_container.has_method("removeItem"):
 		if source_container == target_container:

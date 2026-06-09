@@ -11,8 +11,8 @@ signal wallDestroyed(cellPos: Vector2i)
 
 # ── 导出变量 ──
 @export_group("Map Settings")
-@export var width: int = 20
-@export var height: int = 20
+@export var width: int = 49
+@export var height: int = 49
 @export var destructibleRate: float = 0.75
 
 # ── 私有成员变量 ──
@@ -59,32 +59,82 @@ func generateMap() -> void:
 	_clearSpawnAreas()
 	_renderToTilemap()
 
-# 核心逻辑生成：边界外墙 + 偶数坐标柱子 + 随机可破坏砖块
+# 核心逻辑生成：圆圈外边界精准围栏 + 圆圈内固定柱子 + 随机可破坏砖块，圆圈外部虚空留白
 func _placeLogicWalls() -> void:
+	var cx: float = width / 2.0
+	var cy: float = height / 2.0
+	
 	for x: int in range(width):
 		for y: int in range(height):
-			if x == 0 or x == width - 1 or y == 0 or y == height - 1:
+			var dx: float = (x + 0.5) - cx
+			var dy: float = (y + 0.5) - cy
+			var dist: float = sqrt(dx * dx + dy * dy)
+			
+			if dist >= 24.5:
+				# 外部虚空区域，不生成任何墙体
+				continue
+			
+			if dist >= 23.5:
+				# 精准的圆边界最外圈围栏（不可破坏外墙）
 				indestructibleMap[x][y] = true
 				continue
+			
+			# 圆形内部的经典布局逻辑
 			if x % 2 == 0 and y % 2 == 0:
 				indestructibleMap[x][y] = true
 				continue
+				
 			if randf() < destructibleRate:
 				_addDestructibleWall(x, y)
 
-# 清除四角出生点保护区域内的所有墙
+# 清除上下左右四个出生点保护区域内的障碍墙（上下端点清除横向，左右端点清除纵向，保留最外圈围栏）
 func _clearSpawnAreas() -> void:
+	var cx_i: int = width / 2
+	var cy_i: int = height / 2
 	var spawnPoints: Array = [
-		Vector2i(1, 1), Vector2i(2, 1), Vector2i(1, 2),
-		Vector2i(width - 2, 1), Vector2i(width - 3, 1), Vector2i(width - 2, 2),
-		Vector2i(1, height - 2), Vector2i(2, height - 2), Vector2i(1, height - 3),
-		Vector2i(width - 2, height - 2), Vector2i(width - 3, height - 2), Vector2i(width - 2, height - 3)
+		Vector2i(cx_i, 1),
+		Vector2i(cx_i, height - 2),
+		Vector2i(1, cy_i),
+		Vector2i(width - 2, cy_i)
 	]
 
+	var cx: float = width / 2.0
+	var cy: float = height / 2.0
+
 	for pos: Vector2i in spawnPoints:
-		if pos.x > 0 and pos.x < width - 1 and pos.y > 0 and pos.y < height - 1:
-			indestructibleMap[pos.x][pos.y] = false
-			_destructibleTiles.erase(pos)
+		# 1. 清除出生点本身
+		indestructibleMap[pos.x][pos.y] = false
+		_destructibleTiles.erase(pos)
+		
+		# 判断是上下边缘还是左右边缘
+		var is_top_bottom_edge: bool = (pos.y == 1 or pos.y == height - 2)
+		
+		if is_top_bottom_edge:
+			# 上下边缘：清除水平横向（左右各 2 格，X 轴变化）
+			for dx in [-2, -1, 1, 2]:
+				var px = pos.x + dx
+				var py = pos.y
+				if px >= 0 and px < width:
+					var dist_dx = (px + 0.5) - cx
+					var dist_dy = (py + 0.5) - cy
+					var dist = sqrt(dist_dx * dist_dx + dist_dy * dist_dy)
+					# 只有圆通行区内的格子才做清除，避免把边界最外圈围栏也清理掉
+					if dist < 23.5:
+						indestructibleMap[px][py] = false
+						_destructibleTiles.erase(Vector2i(px, py))
+		else:
+			# 左右边缘：清除垂直纵向（上下各 2 格，Y 轴变化）
+			for dy in [-2, -1, 1, 2]:
+				var px = pos.x
+				var py = pos.y + dy
+				if py >= 0 and py < height:
+					var dist_dx = (px + 0.5) - cx
+					var dist_dy = (py + 0.5) - cy
+					var dist = sqrt(dist_dx * dist_dx + dist_dy * dist_dy)
+					# 只有圆通行区内的格子才做清除，避免把边界最外圈围栏也清理掉
+					if dist < 23.5:
+						indestructibleMap[px][py] = false
+						_destructibleTiles.erase(Vector2i(px, py))
 
 # 随机选取可破坏墙类型并记录
 func _addDestructibleWall(x: int, y: int) -> void:
@@ -97,10 +147,21 @@ func _addDestructibleWall(x: int, y: int) -> void:
 
 # 将逻辑数据渲染到 TileMapLayer
 func _renderToTilemap() -> void:
+	var cx: float = width / 2.0
+	var cy: float = height / 2.0
+	
 	for x: int in range(width):
 		for y: int in range(height):
+			var dx: float = (x + 0.5) - cx
+			var dy: float = (y + 0.5) - cy
+			var dist: float = sqrt(dx * dx + dy * dy)
+			
+			if dist >= 24.5:
+				# 外部区域一律不进行渲染，保持完全虚空留空
+				continue
+				
 			if indestructibleMap[x][y]:
-				if x == 0 or x == width - 1 or y == 0 or y == height - 1:
+				if dist >= 23.5:
 					cell_rode(x, y, MAP_Indestructible_WALL3)
 				else:
 					var wallDef: Dictionary = MAP_Indestructible_WALL1 if randf() < 0.5 else MAP_Indestructible_WALL2
@@ -113,6 +174,14 @@ func _renderToTilemap() -> void:
 # 判断指定格子是否为不可破坏墙
 func is_indestructible(x: int, y: int) -> bool:
 	if x < 0 or x >= width or y < 0 or y >= height: return true
+	var cx: float = width / 2.0
+	var cy: float = height / 2.0
+	var dx: float = (x + 0.5) - cx
+	var dy: float = (y + 0.5) - cy
+	var dist: float = sqrt(dx * dx + dy * dy)
+	# 将圆圈外围所有的空地都在碰撞/波及矩阵上视为不可通行的边界阻挡，增加物理安全系数
+	if dist >= 24.5:
+		return true
 	return indestructibleMap[x][y]
 
 # 判断指定格子是否为可破坏墙

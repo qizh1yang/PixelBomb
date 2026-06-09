@@ -440,16 +440,6 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_invite_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_invite_hover")
 text = "邀请好友"
 
-[node name="SoloTestBtn" type="Button" parent="MainVBox/Body/HBox/RightCol/ActionArea"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.3, 0.3, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_solo_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_solo_hover")
-text = "单人测试"
-
 [node name="ActionBtn" type="Button" parent="MainVBox/Body/HBox/RightCol/ActionArea"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
@@ -492,5 +482,4 @@ theme_override_font_sizes/font_size = 18
 text = "已复制房间码！快去邀请队友吧！"
 
 [connection signal="pressed" from="MainVBox/TopBar/Margin/HBox/LeaveBtn" to="." method="_on_leave_pressed"]
-[connection signal="pressed" from="MainVBox/Body/HBox/RightCol/ActionArea/SoloTestBtn" to="." method="_on_solo_test_pressed"]
 [connection signal="pressed" from="MainVBox/Body/HBox/RightCol/ActionArea/ActionBtn" to="." method="_on_action_pressed"]

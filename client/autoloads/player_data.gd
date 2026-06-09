@@ -22,6 +22,9 @@ var opened_chests_count: int = 0
 # 钻石装备软保底计数器：自上一次获得钻石装备以来开启的宝箱数量
 var chests_since_last_diamond: int = 0
 
+# 新手引导首次游戏判定
+var is_first_game: bool = true
+
 func _ready() -> void:
 	# 连接网络同步信号
 	NetworkManager.profile_loaded.connect(_on_profile_loaded)
@@ -35,6 +38,7 @@ func _on_profile_loaded(data: Dictionary) -> void:
 	print("[GlobalPlayerData] Profile synced from server")
 	if data.has("coins"): coins = data["coins"]
 	if data.has("name"): player_name = data["name"]
+	if data.has("is_first_game"): is_first_game = data["is_first_game"]
 	
 	if data.get("backpack_config") != null:
 		backpack_config.clear()

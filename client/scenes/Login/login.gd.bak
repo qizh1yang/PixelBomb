@@ -1,0 +1,176 @@
+# 登录与注册场景逻辑
+# 处理玩家账户登录、注册以及动态背景效果
+extends Control
+
+# ── 节点引用 ──
+@onready var usernameInput: LineEdit = %UsernameInput
+@onready var passwordInput: LineEdit = %PasswordInput
+@onready var errorLabel: Label = %ErrorLabel
+@onready var loginBtn: Button = %LoginBtn
+@onready var registerBtn: Button = %RegisterBtn
+@onready var loadingOverlay: Control = %LoadingOverlay
+@onready var bgParticles: CPUParticles2D = %BGParticles
+
+const ACCOUNTS_FILE = "user://accounts.json"
+var _local_accounts: Dictionary = {}
+
+func _ready() -> void:
+	errorLabel.text = ""
+	loadingOverlay.hide()
+	_load_local_accounts()
+	
+	# 自动填充最后一个账号 (如果有)
+	_autofill_last_account()
+	
+	# 连接网络信号
+	var net = NetworkManager
+	net.connected_to_server.connect(_on_connection_succeeded)
+	net.connection_closed.connect(_on_connection_failed)
+	net.message_received.connect(_on_message_received)
+
+func _load_local_accounts() -> void:
+	if FileAccess.file_exists(ACCOUNTS_FILE):
+		var file = FileAccess.open(ACCOUNTS_FILE, FileAccess.READ)
+		var content = file.get_as_text()
+		var json = JSON.parse_string(content)
+		if json is Dictionary:
+			_local_accounts = json
+			print("[LOGIN] Loaded %d local accounts" % _local_accounts.size())
+
+func _save_local_account(uname: String, pwd: String) -> void:
+	_local_accounts[uname] = pwd
+	var file = FileAccess.open(ACCOUNTS_FILE, FileAccess.WRITE)
+	file.store_string(JSON.stringify(_local_accounts))
+	print("[LOGIN] Account %s saved locally" % uname)
+
+func _autofill_last_account() -> void:
+	if not _local_accounts.is_empty():
+		# 简单取字典中最后一个
+		var last_uname = _local_accounts.keys()[-1]
+		usernameInput.text = last_uname
+		passwordInput.text = _local_accounts[last_uname]
+
+func _on_login_pressed() -> void:
+	var uname = usernameInput.text.strip_edges()
+	var pwd = passwordInput.text.strip_edges()
+	
+	if uname == "" or pwd == "":
+		_show_error("用户名和密码不能为空")
+		return
+	
+	# 本地校验 (可选，如果纯离线/测试)
+	if _local_accounts.has(uname) and _local_accounts[uname] != pwd:
+		_show_error("本地凭据不匹配")
+		# 仍然可以尝试向服务端验证，这里仅作提示
+	
+	_show_loading(true)
+	NetworkManager.player_name = uname
+	
+	if not NetworkManager.is_connected_to_host:
+		NetworkManager.connect_to_server()
+		var success = await _wait_for_connection(10.0)
+		if not success: return
+	
+	NetworkManager.auth(uname, pwd)
+
+func _on_register_pressed() -> void:
+	var uname = usernameInput.text.strip_edges()
+	var pwd = passwordInput.text.strip_edges()
+	
+	if uname.length() < 3:
+		_show_error("用户名至少需要3个字符")
+		return
+	
+	_save_local_account(uname, pwd) # 先保存到本地
+	
+	_show_loading(true)
+	# 注册逻辑：先连接，再发送 REGISTER 类型消息
+	if not NetworkManager.is_connected_to_host:
+		NetworkManager.connect_to_server()
+		var success = await _wait_for_connection(10.0)
+		if not success: return
+	
+	NetworkManager.request("User.Register", {
+		"username": uname, 
+		"password": pwd
+	})
+
+func _on_connection_succeeded() -> void:
+	# 连接成功，等待发送 Auth 请求 (已在 _on_login_pressed 中 await 处理)
+	pass
+
+func _on_connection_failed() -> void:
+	_show_loading(false)
+	_show_error("无法连接到事务所服务器")
+
+func _on_message_received(route: String, json: Dictionary) -> void:
+	match route:
+		"User.Auth":
+			_show_loading(false)
+			var type = json.get("type", "")
+			if type == "ERROR":
+				_show_error(json.get("message", "登录失败"))
+			else:
+				print("[LOGIN] Auth success, entering lobby...")
+				UIManager.change_scene("lobby")
+		"User.Register":
+			_show_loading(false)
+			var type = json.get("type", "")
+			if type == "REGISTER_SUCCESS":
+				_show_error("注册成功，请点击登录")
+				errorLabel.modulate = Color("#4ADE80")
+			elif type == "ERROR":
+				_show_error(json.get("message", "注册失败"))
+
+func _show_error(msg: String) -> void:
+	errorLabel.text = msg
+	errorLabel.modulate = Color("#E83A3A")
+	
+	# 简单的抖动动画
+	var tween = create_tween()
+	tween.tween_property(errorLabel, "position:x", errorLabel.position.x + 5, 0.05)
+	tween.tween_property(errorLabel, "position:x", errorLabel.position.x - 5, 0.1)
+	tween.tween_property(errorLabel, "position:x", errorLabel.position.x, 0.05)
+
+func _show_loading(active: bool) -> void:
+	loadingOverlay.visible = active
+	loginBtn.disabled = active
+	registerBtn.disabled = active
+
+# ── 连接助手 ──
+
+## 等待连接成功，带超时功能
+func _wait_for_connection(timeout: float) -> bool:
+	if NetworkManager.is_connected_to_host:
+		return true
+	
+	var timer = get_tree().create_timer(timeout)
+	var connected = [false] # 使用数组作为引用
+	var timed_out = [false]
+	
+	var on_success = func(): connected[0] = true
+	var on_timeout = func(): timed_out[0] = true
+	
+	NetworkManager.connected_to_server.connect(on_success, CONNECT_ONE_SHOT)
+	timer.timeout.connect(on_timeout, CONNECT_ONE_SHOT)
+	
+	# 等待其中之一发生
+	while not connected[0] and not timed_out[0]:
+		await get_tree().process_frame
+	
+	if timed_out[0] and not connected[0]:
+		# 清理信号连接
+		if NetworkManager.connected_to_server.is_connected(on_success):
+			NetworkManager.connected_to_server.disconnect(on_success)
+		
+		NetworkManager.disconnect_from_server()
+		_show_error("连接服务器超时 (10秒)")
+		_show_loading(false)
+		return false
+	
+	# 成功连接，清理定时器信号 (如果还没触发)
+	if connected[0] and timer.timeout.is_connected(on_timeout):
+		# timer 是 SceneTreeTimer, 不支持手动断开连接，但它是 ONE_SHOT 且我们已经跳出循环
+		pass
+		
+	return true

@@ -1,4 +1,4 @@
-// Package logic contains the core game business logic and Nano components.
+﻿// Package logic contains the core game business logic and Nano components.
 package logic
 
 import (
@@ -56,6 +56,9 @@ type (
 		Items               map[string]*WorldItemState
 		TriggeredDrops      map[string]bool // Track coordinates that already triggered drop rolls
 		DestroyedWallsCount int             // 累计炸毁的墙壁数量
+		// ── 撤离名额控制 ──
+		EvacuatedCount int // 已成功撤离的人数
+		MaxEvacSlots   int // 最大撤离名额（开局时按人数计算）
 		// [HOST AUTHORITY] 房主权威地图配置
 		HostUID   int64  // 当前房主玩家的 UID
 		MapType   string // "CLASSIC" | "WINTER" | "PROCEDURAL"
@@ -562,6 +565,10 @@ func (c *RoomComponent) StartGame(s *session.Session, msg []byte) error {
 	r, ok := c.rooms[roomID]
 	if ok {
 		r.InGame = true
+			// 撤离名额：N人队伍 → N-1 个名额（2→1, 3→2, 4→3）
+			r.MaxEvacSlots = len(r.Players) - 1
+			r.EvacuatedCount = 0
+			log.Printf("[Room %s] Game started with %d players, max evac slots: %d", roomID, len(r.Players), r.MaxEvacSlots)
 		r.State = 1 // PLAYING
 		r.Group.Broadcast("onGameStart", map[string]interface{}{"seed": r.Seed})
 		
@@ -643,6 +650,8 @@ func (c *RoomComponent) Return(s *session.Session, msg []byte) error {
 		r.Items = make(map[string]*WorldItemState)
 		r.TriggeredDrops = make(map[string]bool)
 		r.DestroyedWallsCount = 0
+			r.EvacuatedCount = 0
+			r.MaxEvacSlots = 0
 		r.Group.Broadcast("onReturn", nil)
 	}
 	c.lock.Unlock()
@@ -749,16 +758,28 @@ func (c *RoomComponent) doLeaveByUID(uid int64, roomID string) {
 	log.Printf("[Nano] Player %d hard-removed from room %s by sweeper", uid, roomID)
 }
 
-// Evacuate handles evacuation request
+// Evacuate handles evacuation request with slot quota
 // Route: Room.Evacuate
 func (c *RoomComponent) Evacuate(s *session.Session, msg []byte) error {
 	roomID := s.Value("room_id").(string)
-	c.lock.RLock()
+	c.lock.Lock()
+	defer c.lock.Unlock()
 	r, ok := c.rooms[roomID]
-	c.lock.RUnlock()
-	if ok {
-		r.Group.Broadcast("onPlayerEvacuated", map[string]interface{}{"id": s.UID()})
+	if !ok {
+		return errors.New("room not found")
 	}
+	// 检查撤离名额是否还有剩余
+	if r.EvacuatedCount >= r.MaxEvacSlots {
+		log.Printf("[Room %s] Evacuation denied for UID=%d: slots full (%d/%d)", roomID, s.UID(), r.EvacuatedCount, r.MaxEvacSlots)
+		return s.Push("onEvacFailed", map[string]interface{}{
+			"reason":  "slots_full",
+			"message": "撤离名额已满",
+		})
+	}
+	// 标记玩家成功撤离并增加计数
+	r.EvacuatedCount++
+	log.Printf("[Room %s] Player UID=%d evacuated successfully (%d/%d slots used)", roomID, s.UID(), r.EvacuatedCount, r.MaxEvacSlots)
+	r.Group.Broadcast("onPlayerEvacuated", map[string]interface{}{"id": s.UID()})
 	return nil
 }
 
@@ -915,19 +936,15 @@ func (c *RoomComponent) UpdateStats(s *session.Session, msg *UpdateStatsRequest)
 			ps.SpeedCurrent = msg.Speed
 			ps.ShieldCurrent = msg.Shields
 
-			// 广播玩家属性同步消息给房间内所有人，实现HUD卡片完全由服务端广播权威数据驱动，拆分 Caps 和 Currents
+			// 广播玩家属性同步消息给房间内所有人，仅同步局内变化的 Current 值
+			// 注意：Cap 值和 has_persistent_shield 由背包装备决定（StartGame 时已发），此处不覆盖
 			r.Group.Broadcast("onPlayerStats", map[string]interface{}{
 				"id": fmt.Sprintf("%d", s.UID()),
 				"stats": map[string]interface{}{
-					"bomb_cap":              ps.BombCap,
-					"bomb_current":          ps.BombCurrent,
-					"radius_cap":            ps.RadiusCap,
-					"radius_current":        ps.RadiusCurrent,
-					"speed_cap":             ps.SpeedCap,
-					"speed_current":         ps.SpeedCurrent,
-					"shield_cap":            ps.ShieldCap,
-					"shield_current":        ps.ShieldCurrent,
-					"has_persistent_shield": ps.ShieldCurrent > 0,
+					"bomb_current":   ps.BombCurrent,
+					"radius_current": ps.RadiusCurrent,
+					"speed_current":  ps.SpeedCurrent,
+					"shield_current": ps.ShieldCurrent,
 				},
 			})
 		}
@@ -1039,25 +1056,30 @@ func (c *RoomComponent) UpdateBombs(r *NanoRoom, delta float64) {
 				continue
 			}
 
-			// 受击冷却判定：防止在连续的几帧 Tick 内重复受击导致护盾瞬间扣光
-			if time.Since(ps.LastDamageTime) < 300*time.Millisecond {
-				continue
+			// 服务端权威爆炸受击判定（考虑玩家 10x10 像素体积横跨格子，不再使用易穿墙的外推）
+			halfSize := 5.0
+			corners := [4][2]float64{
+				{ps.X - halfSize, ps.Y - halfSize},
+				{ps.X + halfSize, ps.Y - halfSize},
+				{ps.X - halfSize, ps.Y + halfSize},
+				{ps.X + halfSize, ps.Y + halfSize},
 			}
 
-			// 使用玩家的坐标、上一次更新时间和当前的速度向量来预测最真实的受击坐标
-			dt := time.Since(ps.LastMoveTime).Seconds()
-			if dt > 0.1 {
-				dt = 0.1
+			hit := false
+			for _, corner := range corners {
+				cx := int(math.Floor(corner[0] / 16.0))
+				cy := int(math.Floor(corner[1] / 16.0))
+				if IsPlayerInExplosion(cx, cy, bx, by, rad) {
+					hit = true
+					break
+				}
 			}
-			predX := ps.X + ps.VX*dt
-			predY := ps.Y + ps.VY*dt
 
-			// 权威向下取整进行格子坐标换算，与 Godot 的 local_to_map 完美对齐
-			pcx := int(math.Floor(predX / 16.0))
-			pcy := int(math.Floor(predY / 16.0))
-
-			// 服务端权威爆炸受击判定
-			if IsPlayerInExplosion(pcx, pcy, bx, by, rad) {
+			if hit {
+				// 受击冷却判定：防止在连续的几帧 Tick 内重复受击导致护盾瞬间扣光
+				if time.Since(ps.LastDamageTime) < 300*time.Millisecond {
+					continue
+				}
 				ps.LastDamageTime = time.Now() // 设置上一次受伤/爆盾时间
 
 				if ps.ShieldCurrent > 0 {
@@ -1272,6 +1294,8 @@ func (c *RoomComponent) Resume(s *session.Session, msg *ResumeRequest) error {
 			"error":   "Session bind failed",
 		})
 	}
+	// Track the resumed session for duplicate-login detection
+	c.userComp.TrackSession(uid, s)
 	s.Set("room_id", roomID)
 	s.Set("resume_token", token)
 

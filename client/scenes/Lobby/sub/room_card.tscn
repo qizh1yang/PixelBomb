@@ -1,109 +1,141 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=7 format=3 uid="uid://78njsaxr2aly"]
 
-[ext_resource type="Script" path="res://scenes/Lobby/sub/room_card.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cowlpn2oplpr1" path="res://scenes/Lobby/sub/room_card.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://37oy2o1d1uf3" path="res://scenes/Lobby/res/主大厅任务背景板.webp" id="2_card_bg"]
+[ext_resource type="Texture2D" uid="uid://d28cmv06vebqp" path="res://scenes/Lobby/res/主大厅任务板人物头像框.webp" id="3_avatar_frame"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-bg_color = Color(0.1725, 0.2118, 0.1922, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.2745, 0.3216, 0.2824, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_card"]
+texture = ExtResource("2_card_bg")
+texture_margin_left = 16.0
+texture_margin_top = 16.0
+texture_margin_right = 16.0
+texture_margin_bottom = 16.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_join_btn"]
-bg_color = Color(0.4863, 0.6235, 0.6902, 1)
+bg_color = Color(0.31, 0.66, 0.42, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_join_hover"]
-bg_color = Color(0.4377, 0.5611, 0.6212, 1)
+bg_color = Color(0.36, 0.74, 0.48, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[node name="RoomCard" type="PanelContainer"]
-custom_minimum_size = Vector2(0, 110)
-anchors_preset = 10
-anchor_right = 1.0
-offset_bottom = 80.0
+[node name="RoomCard" type="Panel"]
+custom_minimum_size = Vector2(500, 220)
+anchors_preset = -1
+anchor_right = 0.264
+anchor_bottom = 0.025
+offset_left = -18.0
+offset_top = -15.0
+offset_right = 3.119995
+offset_bottom = 212.0
 grow_horizontal = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxTexture_card")
 script = ExtResource("1_script")
 
-[node name="Margin" type="MarginContainer" parent="."]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 12
+[node name="AvatarFrame" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 41.0
+offset_right = 165.0
+offset_bottom = 135.0
+texture = ExtResource("3_avatar_frame")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="HBox" type="HBoxContainer" parent="Margin"]
-layout_mode = 2
+[node name="Avatar" type="ColorRect" parent="AvatarFrame"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -41.5
+offset_top = -36.0
+offset_right = 34.5
+offset_bottom = 37.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.7255, 0.4157, 0.3647, 1)
 
-[node name="InfoVBox" type="VBoxContainer" parent="Margin/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
+[node name="InfoVBox" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 168.0
+offset_top = 48.0
+offset_right = 315.0
+offset_bottom = 112.0
 alignment = 1
 
-[node name="TopHBox" type="HBoxContainer" parent="Margin/HBox/InfoVBox"]
-layout_mode = 2
-
-[node name="RoomID" type="Label" parent="Margin/HBox/InfoVBox/TopHBox"]
+[node name="RoomID" type="Label" parent="InfoVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.753, 0.223, 0.168, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.29, 0.17, 0.07, 1)
+theme_override_font_sizes/font_size = 21
 text = "#A3F7"
 
-[node name="Spacer" type="Control" parent="Margin/HBox/InfoVBox/TopHBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="PlayerCount" type="Label" parent="Margin/HBox/InfoVBox/TopHBox"]
+[node name="HostName" type="Label" parent="InfoVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
-theme_override_font_sizes/font_size = 20
-text = "2/4 人"
-
-[node name="BottomHBox" type="HBoxContainer" parent="Margin/HBox/InfoVBox"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="HostName" type="Label" parent="Margin/HBox/InfoVBox/BottomHBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.55, 0.38, 0.22, 1)
+theme_override_font_sizes/font_size = 21
 text = "队长：暗影猎手"
 
-[node name="StatusLabel" type="Label" parent="Margin/HBox/InfoVBox/BottomHBox"]
+[node name="PlayerCountInfo" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -362.0
+offset_top = -15.0
+offset_right = -181.0
+offset_bottom = 26.0
+grow_horizontal = 0
+grow_vertical = 2
+alignment = 1
+
+[node name="PlayerCount" type="Label" parent="PlayerCountInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.23, 1)
+theme_override_font_sizes/font_size = 21
+text = "2/4 人"
+
+[node name="StatusLabel" type="Label" parent="PlayerCountInfo"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9059, 0.8863, 0.8471, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "● 等待中"
 
-[node name="Control" type="Control" parent="Margin/HBox"]
-custom_minimum_size = Vector2(20, 0)
-layout_mode = 2
-
-[node name="JoinBtn" type="Button" parent="Margin/HBox"]
+[node name="JoinBtn" type="Button" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 52)
-layout_mode = 2
-size_flags_vertical = 4
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -202.0
+offset_top = 18.0
+offset_right = -72.0
+offset_bottom = 66.0
+grow_horizontal = 0
+grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 21
 theme_override_styles/normal = SubResource("StyleBoxFlat_join_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_join_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_join_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_join_hover")
 text = "加入任务"
 
-[connection signal="pressed" from="Margin/HBox/JoinBtn" to="." method="_on_join_btn_pressed"]
+[connection signal="pressed" from="JoinBtn" to="." method="_on_join_btn_pressed"]

@@ -4,6 +4,7 @@
 [ext_resource type="Shader" uid="uid://g22g447tfryq" path="res://assets/shaders/water_flow.gdshader" id="2_water_shader"]
 [ext_resource type="PackedScene" uid="uid://hudc123" path="res://prefabs/HUD/hud.tscn" id="3_hud"]
 [ext_resource type="PackedScene" uid="uid://c6neeeuvaa58d" path="res://prefabs/Backpack/backpack.tscn" id="4_backpack"]
+[ext_resource type="PackedScene" uid="uid://c6neeeuvguide" path="res://ui/guide/guide_ui.tscn" id="5_guide"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_water"]
 shader = ExtResource("2_water_shader")
@@ -62,6 +63,8 @@ offset_left = -6.0
 offset_top = 3.0
 offset_right = -6.0
 offset_bottom = 3.0
+
+[node name="GuideUI" parent="." instance=ExtResource("5_guide")]
 
 [node name="TransitionLayer" type="CanvasLayer" parent="."]
 layer = 100

@@ -1,12 +1,15 @@
-[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=4 format=3 uid="uid://eds0d5hdcdad"]
 
-[ext_resource type="Script" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://prefabs/OutfitItems/placeholder.jpg" id="2_icon"]
+[ext_resource type="Texture2D" uid="uid://weamhyht3o8q" path="res://prefabs/OutfitItems/res/局外物品集合.webp" id="1_43se2"]
+[ext_resource type="Script" uid="uid://jkci67oodi1s" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7x2aq"]
+atlas = ExtResource("1_43se2")
+region = Rect2(1514.3428, 559.20337, 287.90552, 282.71802)
 
 [resource]
 script = ExtResource("1_script")
 item_name = "残页·左之卷"
 id = "outfit_power_left_1"
-icon = ExtResource("2_icon")
-shape = Array[Vector2i]([Vector2i(0, 0)])
+icon = SubResource("AtlasTexture_7x2aq")
 radius_left_boost = 1

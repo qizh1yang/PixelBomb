@@ -6,8 +6,8 @@ extends Control
 @onready var usernameInput: LineEdit = %UsernameInput
 @onready var passwordInput: LineEdit = %PasswordInput
 @onready var errorLabel: Label = %ErrorLabel
-@onready var loginBtn: Button = %LoginBtn
-@onready var registerBtn: Button = %RegisterBtn
+@onready var loginBtn: TextureButton = %LoginBtn
+@onready var registerBtn: Label = %RegisterBtn
 @onready var loadingOverlay: Control = %LoadingOverlay
 @onready var bgParticles: CPUParticles2D = %BGParticles
 
@@ -27,6 +27,7 @@ func _ready() -> void:
 	net.connected_to_server.connect(_on_connection_succeeded)
 	net.connection_closed.connect(_on_connection_failed)
 	net.message_received.connect(_on_message_received)
+	net.kicked.connect(_on_kicked)
 
 func _load_local_accounts() -> void:
 	if FileAccess.file_exists(ACCOUNTS_FILE):
@@ -71,7 +72,7 @@ func _on_login_pressed() -> void:
 		var success = await _wait_for_connection(10.0)
 		if not success: return
 	
-	NetworkManager.auth(uname)
+	NetworkManager.auth(uname, pwd)
 
 func _on_register_pressed() -> void:
 	var uname = usernameInput.text.strip_edges()
@@ -107,9 +108,12 @@ func _on_message_received(route: String, json: Dictionary) -> void:
 	match route:
 		"User.Auth":
 			_show_loading(false)
-			# 注意：Nano 逻辑中 Auth 成功通常直接返回数据
-			print("[LOGIN] Auth success, entering lobby...")
-			UIManager.change_scene("lobby")
+			var type = json.get("type", "")
+			if type == "ERROR":
+				_show_error(json.get("message", "登录失败"))
+			else:
+				print("[LOGIN] Auth success, entering lobby...")
+				UIManager.change_scene("lobby")
 		"User.Register":
 			_show_loading(false)
 			var type = json.get("type", "")
@@ -118,6 +122,11 @@ func _on_message_received(route: String, json: Dictionary) -> void:
 				errorLabel.modulate = Color("#4ADE80")
 			elif type == "ERROR":
 				_show_error(json.get("message", "注册失败"))
+
+func _on_kicked(reason: String, message: String) -> void:
+	print("[LOGIN] Kicked by server: %s — %s" % [reason, message])
+	_show_loading(false)
+	_show_error(message)
 
 func _show_error(msg: String) -> void:
 	errorLabel.text = msg
@@ -132,7 +141,6 @@ func _show_error(msg: String) -> void:
 func _show_loading(active: bool) -> void:
 	loadingOverlay.visible = active
 	loginBtn.disabled = active
-	registerBtn.disabled = active
 
 # ── 连接助手 ──
 

@@ -1,12 +1,16 @@
-[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=4 format=3 uid="uid://diyqnfxq4b17x"]
 
-[ext_resource type="Script" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://prefabs/OutfitItems/placeholder.jpg" id="2_icon"]
+[ext_resource type="Texture2D" uid="uid://weamhyht3o8q" path="res://prefabs/OutfitItems/res/局外物品集合.webp" id="1_liicx"]
+[ext_resource type="Script" uid="uid://jkci67oodi1s" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_obrlh"]
+atlas = ExtResource("1_liicx")
+region = Rect2(932.62683, 546.9933, 347.495, 328.03528)
 
 [resource]
 script = ExtResource("1_script")
 item_name = "毁灭炸药桶"
 id = "outfit_power_3"
-icon = ExtResource("2_icon")
+icon = SubResource("AtlasTexture_obrlh")
 shape = Array[Vector2i]([Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(0, 2), Vector2i(1, 2), Vector2i(2, 2)])
 radius_cap_boost = 3

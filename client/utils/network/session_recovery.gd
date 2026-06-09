@@ -54,7 +54,7 @@ func _execute_re_auth() -> void:
 				_on_pipeline_failed("Re-auth response lacked valid User ID")
 				
 	net.message_received.connect(auth_listener[0])
-	net.auth(player_name)
+	net.auth(player_name, net.player_password)
 
 # Step 3: 拉取玩家快照与金币数据 (User.GetProfile)
 func _execute_reload_snapshot() -> void:

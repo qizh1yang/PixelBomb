@@ -278,6 +278,9 @@ func _completeEvacuation() -> void:
 	evacBar.hide()
 	hide() # 隐藏角色代表撤离成功
 	
+	if TutorialManager:
+		TutorialManager.hide_tutorial("evac_zone")
+	
 	var net = get_node_or_null("/root/NetworkManager")
 	if net:
 		net.request("Room.Evacuate", {})
@@ -378,13 +381,20 @@ func doSpawnBomb(cell: Vector2i, radius: int) -> void:
 	var wlayer: TileMapLayer = get_tree().get_first_node_in_group("WallLayer")
 	if wlayer == null: return
 
+	# 去重：检查该格子是否已存在炸弹，防止联机广播导致重复创建
+	for existing in get_tree().get_nodes_in_group("Bomb"):
+		if is_instance_valid(existing) and existing is Bomb:
+			var existing_cell = wlayer.local_to_map(wlayer.to_local(existing.global_position))
+			if existing_cell == cell:
+				print("[BOMB] Duplicate bomb at %s prevented" % str(cell))
+				return
 	var bomb: Node = bombScene.instantiate()
 	wlayer.get_parent().add_child(bomb)
 	bomb.wallLayer = wlayer
 	
 	# 核心逻辑：炸弹的最终威力受限于当前威力和每个方向的上限
 	# explosionRadiusCap 是全局基础上限（通常为 1 + 全局加成）
-	bomb.explosionLength = radius 
+	bomb.explosionLength = radius
 	
 	var actual_ranges = get_actual_explosion_ranges()
 	bomb.limitUp = actual_ranges["up"]
@@ -489,11 +499,13 @@ func _updateShieldHalo() -> void:
 			_shieldHalo.rotation += 0.02
 
 func apply_stats(stats: Dictionary) -> void:
-	maxBombsCap = int(stats.get("bomb_cap", 2))
-	explosionRadiusCap = int(stats.get("radius_cap", 1))
-	speedCap = float(stats.get("speed_cap", 95.0))
-	maxShieldsCap = int(stats.get("shield_cap", 1))
-	hasPersistentShield = bool(stats.get("has_persistent_shield", false))
+	# Caps 仅当服务端明确发送时才覆盖（StartGame 时广播完整属性，UpdateStats 只广播 Current 值）
+	if stats.has("bomb_cap"): maxBombsCap = int(stats.get("bomb_cap", 2))
+	if stats.has("radius_cap"): explosionRadiusCap = int(stats.get("radius_cap", 1))
+	if stats.has("speed_cap"): speedCap = float(stats.get("speed_cap", 95.0))
+	if stats.has("shield_cap"): maxShieldsCap = int(stats.get("shield_cap", 1))
+	if stats.has("has_persistent_shield"):
+		hasPersistentShield = bool(stats.get("has_persistent_shield", false))
 	
 	# 如果是本地玩家，我们需要加上本地背包中已装备物品的属性上限加成
 	if isLocal:

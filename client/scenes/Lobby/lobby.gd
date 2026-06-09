@@ -2,7 +2,7 @@
 extends Control
 
 # ── 节点引用 ──
-@onready var roomList: VBoxContainer = %RoomList
+@onready var roomList: GridContainer = %RoomList
 @onready var playerNameLabel: Label = %PlayerName
 @onready var coinsLabel: Label = %CoinsLabel
 @onready var missionCountLabel: Label = %MissionCount
@@ -20,6 +20,7 @@ func _ready() -> void:
 	net.room_join_failed.connect(_on_room_join_failed)
 	net.connection_closed.connect(_on_connection_lost)
 	net.connected_to_server.connect(_on_connection_restored)
+	net.kicked.connect(_on_kicked)
 	
 	if not GlobalPlayerData.sync_completed.is_connected(_refresh_ui):
 		GlobalPlayerData.sync_completed.connect(_refresh_ui)
@@ -32,10 +33,7 @@ func _ready() -> void:
 	# 初始请求房间列表
 	net.request_room_list()
 	
-	var logout_btn = get_node_or_null("MainLayout/BottomBar/Margin/HBox/LogoutBtn")
-	if logout_btn:
-		logout_btn.mouse_entered.connect(func(): logout_btn.add_theme_color_override("font_color", Color("#b96a5d")))
-		logout_btn.mouse_exited.connect(func(): logout_btn.add_theme_color_override("font_color", Color("#B8B2A7")))
+	# LogoutBtn 的 hover 红色与 pressed 信号均通过 .tscn 主题覆盖 + connection 配置，无需在此重复绑定
 
 func _refresh_ui() -> void:
 	var net = NetworkManager
@@ -65,6 +63,10 @@ func _update_connection_status() -> void:
 		connStatus.modulate = Color("#b96a5d")
 
 # ── 信号回调 ──
+
+func _on_kicked(reason: String, message: String) -> void:
+	print("[Lobby] Kicked by server: %s — %s" % [reason, message])
+	UIManager.change_scene("login")
 
 func _on_room_list_received(rooms: Array) -> void:
 	for child in roomList.get_children():
@@ -131,3 +133,19 @@ func _on_logout_pressed() -> void:
 
 func _on_maintenance_pressed() -> void:
 	UIManager.change_scene("backpack_config")
+
+func _on_tutorial_pressed() -> void:
+	if NetworkManager.current_room != "":
+		NetworkManager.leave_room()
+	
+	GameMode.cleanup_game()
+	
+	if TutorialManager:
+		TutorialManager.force_tutorial = true
+		
+	GameMode.current_stage = GameMode.Stage.PLAYING
+	GameMode.is_game_active = true
+	GameMode.is_offline_mode = true
+	GameMode.selectedMapName = "CLASSIC"
+	
+	UIManager.change_scene("game")

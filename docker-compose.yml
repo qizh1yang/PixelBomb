@@ -18,6 +18,8 @@ services:
       - "9090:9090" # Prometheus metrics collection port
     depends_on:
       - redis
+    volumes:
+      - ./server/storage:/app/storage
     networks:
       - pb-network
     healthcheck:

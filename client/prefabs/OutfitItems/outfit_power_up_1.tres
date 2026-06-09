@@ -1,12 +1,15 @@
-[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=4 format=3 uid="uid://bytvwukgf6dy5"]
 
-[ext_resource type="Script" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://prefabs/OutfitItems/placeholder.jpg" id="2_icon"]
+[ext_resource type="Texture2D" uid="uid://weamhyht3o8q" path="res://prefabs/OutfitItems/res/局外物品集合.webp" id="1_f675n"]
+[ext_resource type="Script" uid="uid://jkci67oodi1s" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v5jmj"]
+atlas = ExtResource("1_f675n")
+region = Rect2(1500.1204, 880.49365, 240.93225, 272.8203)
 
 [resource]
 script = ExtResource("1_script")
 item_name = "短册·上之轴"
 id = "outfit_power_up_1"
-icon = ExtResource("2_icon")
-shape = Array[Vector2i]([Vector2i(0, 0)])
+icon = SubResource("AtlasTexture_v5jmj")
 radius_up_boost = 1

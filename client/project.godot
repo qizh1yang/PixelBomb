@@ -30,6 +30,7 @@ DevHUD="*res://ui/dev_hud/dev_hud.tscn"
 McpInteractionServer="*res://autoloads/mcp_interaction_server.gd"
 User="*res://autoloads/user.gd"
 InputManager="*res://autoloads/input_manager.gd"
+TutorialManager="*res://autoloads/tutorial_manager.gd"
 
 [debug]
 

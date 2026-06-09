@@ -1,12 +1,16 @@
-[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=4 format=3 uid="uid://ccb0v1q2kiqeb"]
 
-[ext_resource type="Script" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://prefabs/OutfitItems/placeholder.jpg" id="2_icon"]
+[ext_resource type="Script" uid="uid://jkci67oodi1s" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://weamhyht3o8q" path="res://prefabs/OutfitItems/res/局外物品集合.webp" id="1_y30g3"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y0kke"]
+atlas = ExtResource("1_y30g3")
+region = Rect2(437.79395, 496.95395, 430.8938, 400.31436)
 
 [resource]
 script = ExtResource("1_script")
 item_name = "精制炸药箱"
 id = "outfit_power_2"
-icon = ExtResource("2_icon")
+icon = SubResource("AtlasTexture_y0kke")
 shape = Array[Vector2i]([Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)])
 radius_cap_boost = 2

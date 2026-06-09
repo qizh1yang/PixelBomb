@@ -23,7 +23,12 @@ func _ready() -> void:
 
 func _generate_map_with_seed() -> void:
 	var net = get_node_or_null("/root/NetworkManager")
-	if net and net.is_connected_to_host:
+	var is_tutorial: bool = false
+	var tm = get_node_or_null("/root/TutorialManager")
+	if tm and tm.get("force_tutorial") == true:
+		is_tutorial = true
+
+	if net and net.is_connected_to_host and not is_tutorial:
 		if net.seed_received:
 			_generate_map(net.map_seed)
 		else:

@@ -83,7 +83,11 @@ func _setup_close_button() -> void:
 func _on_close_clicked() -> void:
 	var bp = get_tree().get_first_node_in_group("Backpack")
 	if bp: bp.set_layout_mode(false)
-	get_parent().queue_free()
+	var win = get_parent().get_parent() # 获取 LootWindow 根节点
+	if is_instance_valid(win):
+		win.queue_free()
+	else:
+		get_parent().queue_free()
 
 func _initGridData() -> void:
 	gridData.clear()

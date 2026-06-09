@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.23-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 # Set Go proxy for China (Optimized for faster deployment)
 ENV GOPROXY=https://goproxy.cn,direct
@@ -33,7 +33,6 @@ WORKDIR /app/
 # Copy the pre-compiled binary and static assets from builder stage
 COPY --from=builder /app/server .
 COPY --from=builder /app/banner.txt .
-COPY --from=builder /app/users.json .
 
 # Set timezone
 ENV TZ=Asia/Shanghai

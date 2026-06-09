@@ -1,5 +1,5 @@
 # 房间卡片逻辑
-extends PanelContainer
+extends Panel
 
 signal join_pressed()
 

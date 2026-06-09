@@ -63,6 +63,7 @@ func _ready() -> void:
 	net.room_state_updated.connect(_on_room_state_updated)
 	net.host_updated.connect(_on_host_updated)
 	net.game_started.connect(_on_game_started)
+	net.kicked.connect(_on_kicked_by_server)
 	
 	# [MAP CONFIG] 动态创建地图配置面板并插入到 missionInfo 区域
 	_setup_map_config_panel()
@@ -227,11 +228,7 @@ func _on_action_pressed() -> void:
 	else:
 		net.toggle_ready()
 
-func _on_solo_test_pressed() -> void:
-	# 绕过人数限制直接请求开始游戏
-	NetworkManager.start_game_request()
-	actionBtn.text = "单人测试中..."
-	actionBtn.disabled = true
+
 
 func _on_leave_pressed() -> void:
 	NetworkManager.leave_room()
@@ -242,6 +239,10 @@ func _on_room_state_updated(_players: Array) -> void:
 
 func _on_host_updated(_is_host: bool, _host_id: String) -> void:
 	_refresh_ui()
+
+func _on_kicked_by_server(reason: String, message: String) -> void:
+	print("[Room] Kicked by server: %s — %s" % [reason, message])
+	UIManager.change_scene("login")
 
 func _on_game_started() -> void:
 	if GameMode.has_method("prepare_for_game"):

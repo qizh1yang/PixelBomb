@@ -54,37 +54,38 @@ func _startBobbing() -> void:
 	_bob_tween.tween_property(sprite, "position", original_pos, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 var itemID: String = ""
+var _pickup_applied: bool = false
 
 # 碰撞回调，检测玩家进入并执行拾取
 func _onBodyEntered(body: Node2D) -> void:
+	if _pickup_applied:
+		return
 	if not body.is_in_group("Player"):
 		return
-	
+
 	# 只有本地玩家触发拾取
 	if "isLocal" in body and not body.isLocal:
 		return
-	
+
 	print("[ITEM] Player touched item: %s, itemID: %s" % [name, itemID])
-	
+	_pickup_applied = true
+
+	# 先本地应用效果，再发网络请求给服务器确认
+	_applyEffect(body)
+	itemPicked.emit(body)
+
 	var gm = get_node_or_null("/root/GameMode")
 	if gm and not gm.is_offline_mode:
-		# 标注修改点：联机模式下，向服务器发送拾取请求，不立即本地销毁和生效，等待服务端广播 onPickup
 		var net = get_node_or_null("/root/NetworkManager")
 		if net:
 			net.send_data({
 				"type": "PICKUP",
 				"id": itemID
 			})
-		return
-	
-	# 直接应用效果（局内道具立即生效）
-	_applyEffect(body)
-	
-	# 发出信号
-	itemPicked.emit(body)
-	
-	# 播放拾取特效后销毁
-	_playPickupEffect()
+	else:
+		# ── [NEW] 离线/新手教程模式：直接在本地播放拾取特效并销毁 ──
+		_playPickupEffect()
+
 
 # 虚函数，由子类实现具体效果
 func _applyEffect(_player: Node2D) -> void:

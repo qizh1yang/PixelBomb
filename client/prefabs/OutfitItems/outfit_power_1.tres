@@ -1,12 +1,15 @@
-[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="BackpackItemResource" load_steps=4 format=3 uid="uid://dnwmfrpn1vmbk"]
 
-[ext_resource type="Script" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://prefabs/OutfitItems/placeholder.jpg" id="2_icon"]
+[ext_resource type="Texture2D" uid="uid://weamhyht3o8q" path="res://prefabs/OutfitItems/res/局外物品集合.webp" id="1_bbfad"]
+[ext_resource type="Script" uid="uid://jkci67oodi1s" path="res://prefabs/Backpack/item_resource.gd" id="1_script"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bwci3"]
+atlas = ExtResource("1_bbfad")
+region = Rect2(93.07886, 538.6533, 355.83484, 358.615)
 
 [resource]
 script = ExtResource("1_script")
 item_name = "小包黑火药"
 id = "outfit_power_1"
-icon = ExtResource("2_icon")
-shape = Array[Vector2i]([Vector2i(0, 0)])
+icon = SubResource("AtlasTexture_bwci3")
 radius_cap_boost = 1

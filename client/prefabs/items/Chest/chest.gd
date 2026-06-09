@@ -1,4 +1,4 @@
-# 局外宝箱逻辑
+﻿# 局外宝箱逻辑
 # 炸毁墙壁后有 5% 概率掉落
 # 炸毁墙壁后有 20% 概率掉落
 # 开启需要 1.5 秒，开启后 40% 概率获得局外物品（OutfitItem）
@@ -49,7 +49,6 @@ const LOOT_POOL: Dictionary = {
 	"tier1": [
 		"res://prefabs/OutfitItems/outfit_bag_large.tres",
 		"res://prefabs/OutfitItems/outfit_speed_1.tres",
-		"res://prefabs/OutfitItems/outfit_power_1.tres",
 		"res://prefabs/OutfitItems/outfit_power_left_1.tres",
 		"res://prefabs/OutfitItems/outfit_power_right_1.tres",
 		"res://prefabs/OutfitItems/outfit_power_up_1.tres",
@@ -58,7 +57,7 @@ const LOOT_POOL: Dictionary = {
 	"tier2": [
 		"res://prefabs/OutfitItems/outfit_suitcase_wood.tres",
 		"res://prefabs/OutfitItems/outfit_speed_3.tres",
-		"res://prefabs/OutfitItems/outfit_power_2.tres",
+		"res://prefabs/OutfitItems/outfit_power_1.tres",
 		"res://prefabs/OutfitItems/outfit_power_left_2.tres",
 		"res://prefabs/OutfitItems/outfit_power_right_2.tres",
 		"res://prefabs/OutfitItems/outfit_power_up_2.tres",
@@ -66,7 +65,7 @@ const LOOT_POOL: Dictionary = {
 	],
 	"tier3": [
 		"res://prefabs/OutfitItems/outfit_speed_5.tres",
-		"res://prefabs/OutfitItems/outfit_power_3.tres",
+		"res://prefabs/OutfitItems/outfit_power_2.tres",
 		"res://prefabs/OutfitItems/outfit_power_left_3.tres",
 		"res://prefabs/OutfitItems/outfit_power_right_3.tres",
 		"res://prefabs/OutfitItems/outfit_power_up_3.tres",
@@ -74,7 +73,8 @@ const LOOT_POOL: Dictionary = {
 	],
 	"diamond": [
 		"res://prefabs/OutfitItems/outfit_pumpkin_giant.tres",
-		"res://prefabs/OutfitItems/outfit_epic_shield.tres"
+		"res://prefabs/OutfitItems/outfit_epic_shield.tres",
+		"res://prefabs/OutfitItems/outfit_power_3.tres"
 	]
 }
 
@@ -211,6 +211,9 @@ func _complete_opening() -> void:
 	# 打开摸金界面（左右分屏）
 	_spawn_loot_ui()
 	
+	if TutorialManager:
+		TutorialManager.show_tutorial("chest_near", "拖动物品到背包中能够增加对应属性", -1.0, "", 20.0)
+	
 	# 时序校正：在抽奖完毕后决定保底计数的重置或自增，确保自增和清零绝对逻辑严密
 	if _diamond_looted_this_chest:
 		GlobalPlayerData.chests_since_last_diamond = 0
@@ -276,6 +279,15 @@ func _spawn_loot_ui() -> void:
 		if is_instance_valid(backpack) and backpack.has_method("set_layout_mode"):
 			backpack.set_layout_mode(false)
 		_loot_ui_instance = null
+		
+		# ── [NEW] 新手教程模式：关闭宝箱窗口后立刻刷出撤离点 ──
+		if TutorialManager and TutorialManager.force_tutorial:
+			var game_mode = get_node_or_null("/root/GameMode")
+			if game_mode:
+				game_mode.evacTriggered = true # 阻止 tick 中的重复触发
+				if game_mode.has_method("_activateEvacuation"):
+					game_mode._activateEvacuation()
+					print("[TUTORIAL] LootWindow closed. Triggered evacuation zone.")
 	)
 
 # 已将全部拾取逻辑迁移至 loot_grid.gd，此处仅保留引用清除
@@ -283,8 +295,10 @@ func _spawn_loot_ui() -> void:
 func _process(delta: float) -> void:
 	if _is_opened:
 		# 如果玩家离开太远，自动关闭界面并销毁宝箱
-		if not _is_player_inside and _loot_ui_instance:
-			_loot_ui_instance.queue_free()
+		if not _is_player_inside:
+			if is_instance_valid(_loot_ui_instance):
+				_loot_ui_instance.queue_free()
+				_loot_ui_instance = null
 			var tween = create_tween()
 			tween.tween_property(self, "modulate:a", 0.0, 0.5)
 			tween.tween_callback(queue_free)

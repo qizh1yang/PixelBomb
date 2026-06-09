@@ -1,52 +1,23 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=8 format=3 uid="uid://c81xpt1g3mr4b"]
 
-[ext_resource type="Script" path="res://scenes/Lobby/lobby.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://s5fmjgxtjknp" path="res://scenes/Lobby/lobby.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://btgejdljvu4c7" path="res://scenes/Lobby/res/主大厅背景.webp" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://cm1x85ljl1jkt" path="res://scenes/Lobby/res/主大厅人物面板背景.webp" id="3_player_bg"]
+[ext_resource type="Texture2D" uid="uid://cb5doendgn6u3" path="res://scenes/Lobby/res/主大厅任务板背景.webp" id="4_task_board_bg"]
+[ext_resource type="Texture2D" uid="uid://dseo30w5o7dyg" path="res://scenes/Lobby/res/主大厅按钮.webp" id="5_btn_bg"]
+[ext_resource type="Texture2D" uid="uid://d28cmv06vebqp" path="res://scenes/Lobby/res/主大厅任务板人物头像框.webp" id="6_avatar_frame"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.1176, 0.1451, 0.1294, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar"]
-bg_color = Color(0.1176, 0.1451, 0.1294, 1)
-border_width_bottom = 2
-border_color = Color(0.2745, 0.3216, 0.2824, 0.7)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bottombar"]
-bg_color = Color(0.1176, 0.1451, 0.1294, 1)
-border_width_top = 2
-border_color = Color(0.2745, 0.3216, 0.2824, 0.7)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
-bg_color = Color(0.1725, 0.2118, 0.1922, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
+bg_color = Color(0.149, 0.1608, 0.149, 0.7059)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.2745, 0.3216, 0.2824, 1)
-shadow_color = Color(0, 0, 0, 0.25)
-shadow_size = 4
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_main_btn"]
-bg_color = Color(0.7255, 0.4157, 0.3647, 1)
+border_color = Color(0.2745, 0.3216, 0.2824, 0.502)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sub_btn"]
-bg_color = Color(0.4863, 0.6235, 0.6902, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.2745, 0.3216, 0.2824, 1)
 
 [node name="Lobby" type="Control"]
 layout_mode = 3
@@ -57,251 +28,256 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="Background" type="Panel" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 6
 
-[node name="MainLayout" type="VBoxContainer" parent="."]
+[node name="PlayerPanel" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 60.0
+offset_top = 448.0
+offset_right = 440.0
+offset_bottom = 1048.0
+texture = ExtResource("3_player_bg")
+expand_mode = 1
+
+[node name="Margin" type="MarginContainer" parent="PlayerPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = -84.0
+offset_bottom = -5.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 0
-
-[node name="TopBar" type="PanelContainer" parent="MainLayout"]
-custom_minimum_size = Vector2(0, 100)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_topbar")
-
-[node name="Margin" type="MarginContainer" parent="MainLayout/TopBar"]
-layout_mode = 2
 theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 48
 theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 48
 
-[node name="HBox" type="HBoxContainer" parent="MainLayout/TopBar/Margin"]
+[node name="VBox" type="VBoxContainer" parent="PlayerPanel/Margin"]
 layout_mode = 2
-
-		[node name="Logo" type="Label" parent="MainLayout/TopBar/Margin/HBox"]
-		layout_mode = 2
-		theme_override_colors/font_color = Color(0.7882, 0.6588, 0.4157, 1)
-		theme_override_font_sizes/font_size = 36
-		text = "浮岛探索：破壁者"
-
-		[node name="Spacer" type="Control" parent="MainLayout/TopBar/Margin/HBox"]
-		layout_mode = 2
-		size_flags_horizontal = 3
-
-		[node name="PlayerInfo" type="HBoxContainer" parent="MainLayout/TopBar/Margin/HBox"]
-		layout_mode = 2
-		theme_override_constants/separation = 20
-
-		[node name="CoinsLabel" type="Label" parent="MainLayout/TopBar/Margin/HBox/PlayerInfo"]
-		unique_name_in_owner = true
-		layout_mode = 2
-		theme_override_colors/font_color = Color(0.9059, 0.8863, 0.8471, 1)
-		theme_override_font_sizes/font_size = 26
-		text = "12,500"
-
-		[node name="PlayerName" type="Label" parent="MainLayout/TopBar/Margin/HBox/PlayerInfo"]
-		unique_name_in_owner = true
-		layout_mode = 2
-		theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
-		theme_override_font_sizes/font_size = 26
-		text = "见习探索者"
-
-		[node name="StatusDot" type="ColorRect" parent="MainLayout/TopBar/Margin/HBox/PlayerInfo"]
-		custom_minimum_size = Vector2(12, 12)
-		layout_mode = 2
-		size_flags_vertical = 4
-		color = Color(0.498, 0.6627, 0.4784, 1)
-
-[node name="Body" type="MarginContainer" parent="MainLayout"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/margin_left = 48
-theme_override_constants/margin_top = 40
-theme_override_constants/margin_right = 48
-theme_override_constants/margin_bottom = 40
-
-[node name="HBox" type="HBoxContainer" parent="MainLayout/Body"]
-layout_mode = 2
-theme_override_constants/separation = 64
-
-[node name="LeftCol" type="VBoxContainer" parent="MainLayout/Body/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 24
-
-[node name="HeaderHBox" type="HBoxContainer" parent="MainLayout/Body/HBox/LeftCol"]
-layout_mode = 2
-
-[node name="Title" type="Label" parent="MainLayout/Body/HBox/LeftCol/HeaderHBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7882, 0.6588, 0.4157, 1)
-theme_override_font_sizes/font_size = 32
-text = "任务公告板"
-
-[node name="MissionCount" type="Label" parent="MainLayout/Body/HBox/LeftCol/HeaderHBox"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 10
-theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
-theme_override_font_sizes/font_size = 22
-text = "共 0 个探索任务"
-
-[node name="Scroll" type="ScrollContainer" parent="MainLayout/Body/HBox/LeftCol"]
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="RoomList" type="VBoxContainer" parent="MainLayout/Body/HBox/LeftCol/Scroll"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 16
-
-[node name="ActionsHBox" type="HBoxContainer" parent="MainLayout/Body/HBox/LeftCol"]
-layout_mode = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 32
 alignment = 1
 
-[node name="RefreshBtn" type="Button" parent="MainLayout/Body/HBox/LeftCol/ActionsHBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 64)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9059, 0.8863, 0.8471, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_sub_btn")
-theme_override_font_sizes/font_size = 24
-text = "刷新公告"
-
-[node name="CreateBtn" type="Button" parent="MainLayout/Body/HBox/LeftCol/ActionsHBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(260, 72)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_main_btn")
-theme_override_font_sizes/font_size = 26
-text = "发起任务"
-
-[node name="RightCol" type="VBoxContainer" parent="MainLayout/Body/HBox"]
-custom_minimum_size = Vector2(400, 0)
-layout_mode = 2
-theme_override_constants/separation = 28
-
-[node name="PlayerCard" type="PanelContainer" parent="MainLayout/Body/HBox/RightCol"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
-
-[node name="Margin" type="MarginContainer" parent="MainLayout/Body/HBox/RightCol/PlayerCard"]
-layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 32
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 32
-
-[node name="VBox" type="VBoxContainer" parent="MainLayout/Body/HBox/RightCol/PlayerCard/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 20
-alignment = 1
-
-[node name="Avatar" type="ColorRect" parent="MainLayout/Body/HBox/RightCol/PlayerCard/Margin/VBox"]
-custom_minimum_size = Vector2(160, 160)
+[node name="AvatarFrame" type="TextureRect" parent="PlayerPanel/Margin/VBox"]
+custom_minimum_size = Vector2(180, 180)
 layout_mode = 2
 size_flags_horizontal = 4
-color = Color(0.9412, 0.902, 0.8235, 1)
+texture = ExtResource("6_avatar_frame")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="Name" type="Label" parent="MainLayout/Body/HBox/RightCol/PlayerCard/Margin/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9059, 0.8863, 0.8471, 1)
-theme_override_font_sizes/font_size = 28
-text = "破壁者"
-horizontal_alignment = 1
+[node name="Avatar" type="ColorRect" parent="PlayerPanel/Margin/VBox/AvatarFrame"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -64.0
+offset_top = -64.0
+offset_right = 64.0
+offset_bottom = 64.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.7255, 0.4157, 0.3647, 1)
 
-[node name="Title" type="Label" parent="MainLayout/Body/HBox/RightCol/PlayerCard/Margin/VBox"]
+[node name="PlayerName" type="Label" parent="PlayerPanel/Margin/VBox"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.29, 0.17, 0.07, 1)
+theme_override_font_sizes/font_size = 30
 text = "见习探索者"
 horizontal_alignment = 1
 
-[node name="QuickEntires" type="VBoxContainer" parent="MainLayout/Body/HBox/RightCol"]
+[node name="CoinsHBox" type="HBoxContainer" parent="PlayerPanel/Margin/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 8
+alignment = 1
 
-[node name="MaintenanceBtn" type="Button" parent="MainLayout/Body/HBox/RightCol/QuickEntires"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 80)
+[node name="CoinsIcon" type="Label" parent="PlayerPanel/Margin/VBox/CoinsHBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_main_btn")
+theme_override_colors/font_color = Color(0.9608, 0.8235, 0.6078, 1)
 theme_override_font_sizes/font_size = 26
-text = "整备中心"
+text = "🪙"
 
-[node name="AtlasBtn" type="Button" parent="MainLayout/Body/HBox/RightCol/QuickEntires"]
-custom_minimum_size = Vector2(0, 68)
+[node name="CoinsLabel" type="Label" parent="PlayerPanel/Margin/VBox/CoinsHBox"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.3529, 0.3882, 0.3647, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_sub_btn")
+theme_override_colors/font_color = Color(0.9608, 0.8235, 0.6078, 1)
+theme_override_font_sizes/font_size = 26
+text = "12,500"
+
+[node name="MissionPanel" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = -46.0
+offset_top = 22.0
+offset_right = 2159.0
+offset_bottom = 1068.0
+texture = ExtResource("4_task_board_bg")
+expand_mode = 1
+
+[node name="Title" type="Label" parent="MissionPanel"]
+layout_mode = 0
+offset_left = 873.0
+offset_top = 69.0
+offset_right = 1357.0
+offset_bottom = 161.0
+theme_override_colors/font_color = Color(0.9608, 0.8235, 0.6078, 1)
+theme_override_font_sizes/font_size = 68
+text = "任务公告板"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MissionCount" type="Label" parent="MissionPanel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -1273.0
+offset_top = 227.0
+offset_right = -926.0
+offset_bottom = 262.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
 theme_override_font_sizes/font_size = 24
-disabled = true
-text = "探索图鉴"
+text = "共 0 个探索任务"
+horizontal_alignment = 1
 
-[node name="SystemInfo" type="VBoxContainer" parent="MainLayout/Body/HBox/RightCol"]
+[node name="Scroll" type="ScrollContainer" parent="MissionPanel"]
+layout_mode = 0
+offset_left = 616.0
+offset_top = 292.0
+offset_right = 1595.0
+offset_bottom = 843.0
+horizontal_scroll_mode = 0
+
+[node name="RoomList" type="GridContainer" parent="MissionPanel/Scroll"]
+unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 10
-theme_override_constants/separation = 4
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 5
+columns = 2
 
-[node name="ServerStatus" type="Label" parent="MainLayout/Body/HBox/RightCol/SystemInfo"]
+[node name="ButtonPanel" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1690.0
+offset_top = 200.0
+offset_right = 1910.0
+offset_bottom = 1092.0
+texture = ExtResource("5_btn_bg")
+expand_mode = 1
+
+[node name="TutorialBtn" type="Button" parent="ButtonPanel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 69.0
+offset_top = 711.0
+offset_right = 173.0
+offset_bottom = 753.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.9529, 0.9294, 0.8784, 1)
+theme_override_colors/font_hover_color = Color(1, 0.65, 0, 1)
+theme_override_font_sizes/font_size = 24
+text = "新手教程"
+flat = true
+
+[node name="MaintenanceBtn" type="Button" parent="ButtonPanel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 71.0
+offset_top = 567.0
+offset_right = 175.0
+offset_bottom = 609.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.9529, 0.9294, 0.8784, 1)
+theme_override_colors/font_hover_color = Color(1, 0.65, 0, 1)
+theme_override_font_sizes/font_size = 24
+text = "整备中心"
+flat = true
+
+[node name="CreateBtn" type="Button" parent="ButtonPanel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 65.0
+offset_top = 414.0
+offset_right = 169.0
+offset_bottom = 456.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.9529, 0.9294, 0.8784, 1)
+theme_override_colors/font_hover_color = Color(1, 0.65, 0, 1)
+theme_override_font_sizes/font_size = 24
+text = "创建任务"
+flat = true
+
+[node name="RefreshBtn" type="Button" parent="ButtonPanel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 68.0
+offset_top = 125.0
+offset_right = 172.0
+offset_bottom = 167.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.9529, 0.9294, 0.8784, 1)
+theme_override_colors/font_hover_color = Color(1, 0.65, 0, 1)
+theme_override_font_sizes/font_size = 24
+text = "刷新公告"
+flat = true
+
+[node name="StatusPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -380.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = 90.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
+
+[node name="Margin" type="MarginContainer" parent="StatusPanel"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
-theme_override_font_sizes/font_size = 18
-text = "服务器：探索战线中枢 [在线]"
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_right = 16
 
-[node name="Version" type="Label" parent="MainLayout/Body/HBox/RightCol/SystemInfo"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
-theme_override_font_sizes/font_size = 18
-text = "Ver 0.5.2 Demo"
-
-[node name="BottomBar" type="PanelContainer" parent="MainLayout"]
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_bottombar")
-
-[node name="Margin" type="MarginContainer" parent="MainLayout/BottomBar"]
-layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_right = 24
-
-[node name="HBox" type="HBoxContainer" parent="MainLayout/BottomBar/Margin"]
-layout_mode = 2
-
-[node name="ConnStatus" type="Label" parent="MainLayout/BottomBar/Margin/HBox"]
+[node name="ConnStatus" type="Label" parent="StatusPanel/Margin"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.498, 0.6627, 0.4784, 1)
 theme_override_font_sizes/font_size = 18
 text = "● 已连接至沧溟海联合事务所"
+vertical_alignment = 1
 
-[node name="Spacer" type="Control" parent="MainLayout/BottomBar/Margin/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="LogoutBtn" type="Button" parent="MainLayout/BottomBar/Margin/HBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7216, 0.698, 0.6549, 1)
-theme_override_font_sizes/font_size = 18
+[node name="LogoutBtn" type="Button" parent="."]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 180.0
+offset_bottom = 90.0
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_colors/font_hover_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 20
 text = "退出登录"
 flat = true
 
-[connection signal="pressed" from="MainLayout/Body/HBox/LeftCol/ActionsHBox/RefreshBtn" to="." method="_on_refresh_pressed"]
-[connection signal="pressed" from="MainLayout/Body/HBox/LeftCol/ActionsHBox/CreateBtn" to="." method="_on_create_pressed"]
-[connection signal="pressed" from="MainLayout/Body/HBox/RightCol/QuickEntires/MaintenanceBtn" to="." method="_on_maintenance_pressed"]
-[connection signal="pressed" from="MainLayout/BottomBar/Margin/HBox/LogoutBtn" to="." method="_on_logout_pressed"]
+[connection signal="pressed" from="ButtonPanel/TutorialBtn" to="." method="_on_tutorial_pressed"]
+[connection signal="pressed" from="ButtonPanel/MaintenanceBtn" to="." method="_on_maintenance_pressed"]
+[connection signal="pressed" from="ButtonPanel/CreateBtn" to="." method="_on_create_pressed"]
+[connection signal="pressed" from="ButtonPanel/RefreshBtn" to="." method="_on_refresh_pressed"]
+[connection signal="pressed" from="LogoutBtn" to="." method="_on_logout_pressed"]

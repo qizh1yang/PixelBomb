@@ -22,6 +22,9 @@ type UserProfile struct {
 	Inventory      []string           `json:"inventory"`
 	BackpackConfig []BackpackItemInfo `json:"backpack_config"`
 	Presets        [][]BackpackItemInfo `json:"presets"`
+	IsFirstGame    bool               `json:"is_first_game"`
+	PlayedTime     float64            `json:"played_time"`
+	LastLoginTime  string             `json:"last_login_time"`
 }
 
 // ── 游戏状态模型 ──

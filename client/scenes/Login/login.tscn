@@ -1,7 +1,14 @@
-[gd_scene load_steps=6 format=3 uid="uid://usqbcy18aupt"]
+[gd_scene load_steps=13 format=3 uid="uid://usqbcy18aupt"]
 
 [ext_resource type="Script" uid="uid://b61v7g3bn68j2" path="res://scenes/Login/login.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://bnsj2hngn52kc" path="res://scenes/Login/res/登陆界面背景图.webp" id="2_bg_tex"]
+[ext_resource type="Texture2D" uid="uid://05qrxuerfmke" path="res://scenes/Login/res/登陆页面的背景.webp" id="2_page_bg"]
+[ext_resource type="Texture2D" uid="uid://blvm804t0s6p6" path="res://scenes/Login/res/登陆页面logo.webp" id="3_logo"]
+[ext_resource type="Texture2D" uid="uid://27thslxlcabg" path="res://scenes/Login/res/登陆框背景.webp" id="4_panel_bg"]
+[ext_resource type="Texture2D" uid="uid://bmjejjy0iyjs7" path="res://scenes/Login/res/登录窗口输入框.webp" id="5_input_bg"]
+[ext_resource type="Texture2D" uid="uid://dn4qsufdt10a5" path="res://scenes/Login/res/登录框用户图标.webp" id="6_user_icon"]
+[ext_resource type="Texture2D" uid="uid://cc7xmbndb50jv" path="res://scenes/Login/res/登录页面开始按钮.webp" id="7_start_btn"]
+[ext_resource type="Texture2D" uid="uid://cdgx0shvym2nk" path="res://scenes/Login/res/登录窗口密码图标.webp" id="8_pwd_icon"]
+[ext_resource type="Texture2D" uid="uid://7wnehcot3gyw" path="res://scenes/Login/res/登陆按钮悬停.webp" id="9_btn_hover"]
 
 [sub_resource type="Curve" id="Curve_particles"]
 _data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.5, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
@@ -11,19 +18,7 @@ point_count = 3
 offsets = PackedFloat32Array(0, 0, 1)
 colors = PackedColorArray(0.960784, 0.65098, 0.137255, 0, 0.960784, 0.65098, 0.137255, 0, 0.960784, 0.65098, 0.137255, 0.4)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.06, 0.12, 0.22, 0.88)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.35, 0.6, 0.9, 0.35)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 30
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_transparent"]
 
 [node name="Login" type="Control"]
 layout_mode = 3
@@ -41,18 +36,19 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_bg_tex")
+texture = ExtResource("2_page_bg")
 expand_mode = 1
 stretch_mode = 6
 
 [node name="BgDarken" type="ColorRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.05, 0.1, 0.55)
+color = Color(0, 0, 0, 0.4)
 
 [node name="BGParticles" type="CPUParticles2D" parent="."]
 unique_name_in_owner = true
@@ -72,109 +68,179 @@ scale_amount_max = 5.0
 scale_amount_curve = SubResource("Curve_particles")
 color_ramp = SubResource("Gradient_particles")
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="LogoTexture" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -375.0
+offset_top = -150.0
+offset_right = 375.0
+offset_bottom = 600.0
+grow_horizontal = 2
+texture = ExtResource("3_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LoginBox" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -430.0
+offset_top = -100.0
+offset_right = 430.0
+offset_bottom = 480.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_panel_bg")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UsernameBox" type="TextureRect" parent="LoginBox"]
+layout_mode = 1
+offset_left = 104.0
+offset_top = 129.0
+offset_right = 804.0
+offset_bottom = 227.0
+texture = ExtResource("5_input_bg")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MarginContainer" type="MarginContainer" parent="LoginBox/UsernameBox"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 31.0
+offset_top = 4.0
+offset_right = 31.0
+offset_bottom = 4.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 5
 
-[node name="MainVBox" type="VBoxContainer" parent="CenterContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="LoginBox/UsernameBox/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 80
+theme_override_constants/separation = 18
 
-[node name="LogoVBox" type="VBoxContainer" parent="CenterContainer/MainVBox"]
+[node name="UserIcon" type="TextureRect" parent="LoginBox/UsernameBox/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(65, 52)
 layout_mode = 2
-theme_override_constants/separation = 20
+size_flags_vertical = 4
+texture = ExtResource("6_user_icon")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="Logo" type="Label" parent="CenterContainer/MainVBox/LogoVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.960784, 0.65098, 0.137255, 1)
-theme_override_font_sizes/font_size = 80
-text = "SHATTERED ISLAND"
-horizontal_alignment = 1
-
-[node name="SubLogo" type="Label" parent="CenterContainer/MainVBox/LogoVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.5)
-theme_override_font_sizes/font_size = 32
-text = "浮岛劫掠：破壁者"
-horizontal_alignment = 1
-
-[node name="LoginPanel" type="PanelContainer" parent="CenterContainer/MainVBox"]
-custom_minimum_size = Vector2(680, 0)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
-
-[node name="Margin" type="MarginContainer" parent="CenterContainer/MainVBox/LoginPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 64
-theme_override_constants/margin_top = 60
-theme_override_constants/margin_right = 64
-theme_override_constants/margin_bottom = 60
-
-[node name="FormVBox" type="VBoxContainer" parent="CenterContainer/MainVBox/LoginPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 36
-
-[node name="Title" type="Label" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "身份认证"
-horizontal_alignment = 1
-
-[node name="Control" type="Control" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox"]
-custom_minimum_size = Vector2(0, 8)
-layout_mode = 2
-
-[node name="UsernameInput" type="LineEdit" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox"]
+[node name="UsernameInput" type="LineEdit" parent="LoginBox/UsernameBox/MarginContainer/HBoxContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
-placeholder_text = "破壁者代号"
-alignment = 1
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_selected_color = Color(0.1, 0.1, 0.1, 1)
+theme_override_colors/font_placeholder_color = Color(0.2, 0.2, 0.2, 0.6)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/read_only = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_transparent")
+placeholder_text = "用户名"
 
-[node name="PasswordInput" type="LineEdit" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 72)
+[node name="PasswordBox" type="TextureRect" parent="LoginBox"]
+layout_mode = 1
+offset_left = 104.0
+offset_top = 224.0
+offset_right = 804.0
+offset_bottom = 322.0
+texture = ExtResource("5_input_bg")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MarginContainer" type="MarginContainer" parent="LoginBox/PasswordBox"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 31.0
+offset_top = 3.0
+offset_right = 31.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="LoginBox/PasswordBox/MarginContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
-placeholder_text = "安全访问密钥"
-alignment = 1
+theme_override_constants/separation = 18
+
+[node name="PasswordIcon" type="TextureRect" parent="LoginBox/PasswordBox/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(65, 52)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("8_pwd_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PasswordInput" type="LineEdit" parent="LoginBox/PasswordBox/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_selected_color = Color(0.1, 0.1, 0.1, 1)
+theme_override_colors/font_placeholder_color = Color(0.2, 0.2, 0.2, 0.6)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/read_only = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_transparent")
+placeholder_text = "密码"
 secret = true
 
-[node name="ErrorLabel" type="Label" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox"]
+[node name="RegisterBtn" type="Label" parent="LoginBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 22)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.909804, 0.227451, 0.227451, 1)
+layout_mode = 1
+offset_left = 88.0
+offset_top = 319.0
+offset_right = 788.0
+offset_bottom = 349.0
+theme_override_colors/font_color = Color(0.960784, 0.65098, 0.137255, 1)
 theme_override_font_sizes/font_size = 20
-text = "用户名或密码错误"
+text = "请记住用户名和密码，点击开始冒险将自动注册"
+horizontal_alignment = 1
+
+[node name="ErrorLabel" type="Label" parent="LoginBox"]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 80.0
+offset_top = -45.0
+offset_right = 780.0
+offset_bottom = -15.0
+theme_override_colors/font_color = Color(0.909804, 0.227451, 0.227451, 1)
+theme_override_font_sizes/font_size = 22
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="ButtonsHBox" type="HBoxContainer" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="RegisterBtn" type="Button" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox/ButtonsHBox"]
+[node name="LoginBtn" type="TextureButton" parent="LoginBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 72)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 1, 1, 0.6)
-theme_override_font_sizes/font_size = 26
-text = "注册账号"
-
-[node name="LoginBtn" type="Button" parent="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox/ButtonsHBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 72)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 28
-text = "接入系统"
+layout_mode = 1
+offset_left = 292.0
+offset_top = 371.0
+offset_right = 572.0
+offset_bottom = 484.0
+texture_normal = ExtResource("7_start_btn")
+texture_hover = ExtResource("9_btn_hover")
+ignore_texture_size = true
+stretch_mode = 5
 
 [node name="LoadingOverlay" type="ColorRect" parent="."]
 unique_name_in_owner = true
@@ -203,5 +269,4 @@ grow_vertical = 2
 theme_override_font_sizes/font_size = 26
 text = "认证中..."
 
-[connection signal="pressed" from="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox/ButtonsHBox/RegisterBtn" to="." method="_on_register_pressed"]
-[connection signal="pressed" from="CenterContainer/MainVBox/LoginPanel/Margin/FormVBox/ButtonsHBox/LoginBtn" to="." method="_on_login_pressed"]
+[connection signal="pressed" from="LoginBox/LoginBtn" to="." method="_on_login_pressed"]

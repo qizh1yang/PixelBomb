@@ -11,8 +11,8 @@ signal map_generated(seed_val: int)
 
 # ── 导出变量 ──
 @export_group("Map Config")
-@export var map_width: int = 25
-@export var map_height: int = 25
+@export var map_width: int = 49
+@export var map_height: int = 49
 
 # ── 私有成员变量 ──
 var is_offline_mode: bool = false
@@ -32,7 +32,12 @@ func _ready() -> void:
 # 根据网络状态决定使用服务器种子还是本地随机种子
 func _generate_map_with_seed() -> void:
 	var net: Node = get_node_or_null("/root/NetworkManager")
-	if net and net.is_connected_to_host:
+	var is_tutorial: bool = false
+	var tm = get_node_or_null("/root/TutorialManager")
+	if tm and tm.get("force_tutorial") == true:
+		is_tutorial = true
+
+	if net and net.is_connected_to_host and not is_tutorial:
 		if net.seed_received:
 			_generate_map(net.map_seed)
 		else:

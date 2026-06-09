@@ -27,11 +27,16 @@ func _ready() -> void:
 	gm = get_node_or_null("/root/GameMode")
 	_playEntranceTransition()
 
+	# 监听被踢信号 (多开/重复登录)
+	if not NetworkManager.kicked.is_connected(_on_kicked_from_game):
+		NetworkManager.kicked.connect(_on_kicked_from_game)
+
 	var is_standalone = (get_parent() == get_tree().root)
 
 	if gm:
-		if is_standalone and not gm.is_game_active:
-			print("[STAGE] Standalone detected, loading default map...")
+		# 仅纯离线/教程模式才走此分支（联机模式由 prepare_for_game 初始化，is_game_active 已为 true）
+		if is_standalone and not gm.is_game_active and gm.is_offline_mode:
+			print("[STAGE] Standalone/offline detected, loading default map...")
 			gm.cleanup_game()
 			gm.is_game_active = true
 			gm.current_stage = gm.Stage.PLAYING
@@ -40,7 +45,7 @@ func _ready() -> void:
 			var cfg = gm.get_map_config()
 			setupMap(defaultMap, cfg)
 		elif not mapInstance:
-			# 在正常网络流程中，如果进入场景时地图还没加载，则主动加载一次
+			print("[STAGE] Online/networked mode, loading map (offline=%s active=%s standalone=%s)" % [str(gm.is_offline_mode), str(gm.is_game_active), str(is_standalone)])
 			var defaultMap: String = gm.get_selected_map_path()
 			var cfg = gm.get_map_config()
 			setupMap(defaultMap, cfg)
@@ -58,8 +63,19 @@ func _ready() -> void:
 	print("[STAGE] Game stage ready")
 	stageReady.emit()
 
+func _on_kicked_from_game(reason: String, message: String) -> void:
+	print("[STAGE] Kicked by server during game: %s — %s" % [reason, message])
+	# 游戏中被踢，清理并返回登录界面
+	if gm:
+		gm.cleanup_game()
+	UIManager.change_scene("login")
+
 func _onGameOver(isSuccess: bool) -> void:
 	print("[STAGE] 收到结算信号，显示结果面板: ", "成功" if isSuccess else "失败")
+	
+	if TutorialManager:
+		TutorialManager.clear_all_tutorials()
+		
 	var resultScene = load("res://ui/result_panel/result_panel.tscn")
 	if resultScene:
 		var resultInstance = resultScene.instantiate()
@@ -140,11 +156,26 @@ func startCountdown() -> void:
 	await tween.finished
 	countdownLabel.hide()
 	countdownLabel.modulate.a = 1.0
+	
+	if TutorialManager:
+		TutorialManager.show_tutorial("controls", "上下左右键控制方向，空格键释放炸弹", -1.0, "res://assets/guide/方向键_chroma.webp", -160.0)
+		
+		# ── [NEW] 新手教程模式：在玩家身旁自动刷新一个宝箱 ──
+		if TutorialManager.force_tutorial:
+			_spawn_tutorial_chest_delayed()
 
 func _process(delta: float) -> void:
 	_updateDebugInfo()
 	if gm and gm.is_game_active:
 		gm.tick(delta)
+	# 摄像机跟随本地玩家（不依赖 gm 状态，直接从场景树找）
+	if is_instance_valid(camera):
+		for p in get_tree().get_nodes_in_group("Player"):
+			if is_instance_valid(p) and p.get("isLocal") == true:
+				camera.global_position = p.global_position
+				if not camera.is_current():
+					camera.make_current()
+				break
 
 # 调试信息：输出本地玩家所在地图格子（格子变化时打印）
 func _updateDebugInfo() -> void:
@@ -195,6 +226,9 @@ func show_evac_zone() -> void:
 		label.add_theme_font_size_override("font_size", 8)
 
 		print("[STAGE] 撤离点已创建在地图格子: %s, 局部坐标: %s" % [centerCell, marker.position])
+		
+		if TutorialManager:
+			TutorialManager.show_tutorial("evac_zone", "到撤离区域按E能够成功撤离", -1.0, "", 200.0)
 	else:
 		print("[STAGE] 错误：无法获取 wall_layer，撤离点创建失败")
 
@@ -210,3 +244,40 @@ func _unhandled_input(event: InputEvent) -> void:
 		if backpack and backpack.has_method("toggle"):
 			backpack.toggle()
 			get_viewport().set_input_as_handled()
+
+func _spawn_tutorial_chest_delayed() -> void:
+	# 稍微延迟 0.5 秒生成，给玩家一个视觉缓冲
+	await get_tree().create_timer(0.5).timeout
+	if gm:
+		var lp = gm.get_local_player()
+		if lp and gm.wall_layer:
+			var cell = gm.wall_layer.local_to_map(gm.wall_layer.to_local(lp.global_position))
+			
+			var w = gm.wall_layer.width
+			var h = gm.wall_layer.height
+			var cx = w / 2
+			var cy = h / 2
+			
+			# 朝向地图中心的方向向量
+			var dir = Vector2(cx - cell.x, cy - cell.y).normalized()
+			# 取最主要的轴方向
+			var offset_dir = Vector2i.ZERO
+			if abs(dir.x) > abs(dir.y):
+				offset_dir.x = 1 if dir.x > 0 else -1
+			else:
+				offset_dir.y = 1 if dir.y > 0 else -1
+				
+			# 偏移 2 个格子生成宝箱，确保在朝向地图中心的方向上，绝不出界
+			var chest_cell = cell + offset_dir * 2
+			
+			# 移除该格子上的任何墙壁以及数据矩阵记录，防止被遮挡或检测出碰撞
+			gm.wall_layer.set_cell(chest_cell, -1)
+			if "indestructibleMap" in gm.wall_layer:
+				gm.wall_layer.indestructibleMap[chest_cell.x][chest_cell.y] = false
+			if "_destructibleTiles" in gm.wall_layer:
+				gm.wall_layer._destructibleTiles.erase(chest_cell)
+			
+			# 调用 GameMode 原有的生成宝箱视觉表现的方法
+			if gm.has_method("_spawnChestVisual"):
+				gm._spawnChestVisual("tutorial_chest", chest_cell.x, chest_cell.y)
+				print("[TUTORIAL] Spawned tutorial chest at cell: ", chest_cell)

@@ -55,6 +55,7 @@ signal game_started()
 signal room_state_updated(room_players: Array)
 signal room_join_failed(message: String)
 signal game_state_resumed(snapshot: Dictionary) # [NEW] 墓碑恢复成功，广播权威快照
+signal kicked(reason: String, message: String) # 被服务器踢出 (多开/重复登录)
 
 var socket := WebSocketPeer.new()
 var http_client: HTTPRequest = null
@@ -277,6 +278,14 @@ func _handle_nano_packet(packet: PackedByteArray) -> void:
 			_send_raw_packet(PacketType.HEARTBEAT, PackedByteArray())
 		PacketType.DATA:
 			_handle_data_packet(body)
+		PacketType.KICK:
+			net_warn("Received KICK packet from server — duplicate login detected")
+			kicked.emit("duplicate_login", "您的账号已在其他设备登录")
+			if reconnect_controller:
+				reconnect_controller.stop_reconnecting()
+			socket.close()
+			reset_state()
+			connection_closed.emit()
 
 func _handle_data_packet(data: PackedByteArray) -> void:
 	if data.is_empty(): return
@@ -451,6 +460,17 @@ func _dispatch_route_message(route: String, body: Variant) -> void:
 			
 			room_joined.emit(map_seed)
 	
+		"onKicked":
+			net_warn("Kicked by server: %s — %s" % [body.get("reason", ""), body.get("message", "您的账号已在其他设备登录")])
+			kicked.emit(body.get("reason", ""), body.get("message", "您的账号已在其他设备登录"))
+			# 停止重连机制，防止无限重试
+			if reconnect_controller:
+				reconnect_controller.stop_reconnecting()
+			# 断开连接并重置状态
+			socket.close()
+			reset_state()
+			connection_closed.emit()
+
 	message_received.emit(route, body)
 
 # ── 发送接口 ──
@@ -638,8 +658,9 @@ func reset_state() -> void:
 		
 	net_log("Network state reset.")
 
-func auth(username: String) -> void:
-	request("User.Auth", {"username": username, "password": ""})
+func auth(username: String, password: String = "") -> void:
+	player_name = username
+	request("User.Auth", {"username": username, "password": password})
 
 func join_room(room_id: String) -> void:
 	request("Room.Join", {"room_id": room_id})
