@@ -11,7 +11,8 @@ echo "  PixelBomb Server Update"
 echo "========================================"
 
 echo "[1/3] Pulling latest code from GitHub..."
-git pull origin main
+git fetch origin main
+git reset --hard origin/main
 
 echo ""
 echo "[2/3] Stopping services + rebuilding..."
