@@ -59,11 +59,16 @@ func (s *SQLiteStore) createTables() error {
 		last_login_time TEXT,
 		inventory TEXT DEFAULT '[]',
 		backpack_config TEXT DEFAULT '[]',
-		presets TEXT DEFAULT '[]'
+		presets TEXT DEFAULT '[]',
+		device_id TEXT DEFAULT ''
 	);
 	`
-	_, err := s.db.Exec(query)
-	return err
+	if _, err := s.db.Exec(query); err != nil {
+		return err
+	}
+	// 兼容旧数据库：如果 device_id 列不存在则添加
+	s.db.Exec(`ALTER TABLE users ADD COLUMN device_id TEXT DEFAULT ''`)
+	return nil
 }
 
 func (s *SQLiteStore) RegisterUser(username, password string) error {
@@ -189,6 +194,90 @@ func (s *SQLiteStore) UpdatePlayedTime(uid int64, durationSec float64) error {
 
 	_, err := s.db.Exec(`UPDATE users SET played_time = played_time + ? WHERE id = ?;`, durationSec, uid)
 	return err
+}
+
+// RegisterGuest 为设备ID创建游客账号，返回生成的用户名
+func (s *SQLiteStore) RegisterGuest(deviceID string) (string, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	// 生成游客名：勇者_ + 6位随机字符
+	const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+	r := time.Now().UnixNano()
+	b := make([]byte, 6)
+	for i := range b {
+		b[i] = chars[r%int64(len(chars))]
+		r = r>>8 + r&0xFF
+		if r < int64(len(chars)) {
+			r += time.Now().UnixNano()
+		}
+	}
+	nickname := "勇者_" + string(b)
+
+	hash, _ := bcrypt.GenerateFromPassword([]byte(""), bcrypt.DefaultCost)
+	nowStr := time.Now().Format("2006-01-02 15:04:05")
+	_, err := s.db.Exec(
+		`INSERT INTO users (username, password_hash, device_id, coins, is_first_game, played_time, last_login_time, inventory, backpack_config, presets)
+		VALUES (?, ?, ?, 500, 1, 0.0, ?, '[]', '[]', '[]')`,
+		nickname, string(hash), deviceID, nowStr,
+	)
+	return nickname, err
+}
+
+// FindByDeviceID 通过设备ID查找已存在的游客账号
+func (s *SQLiteStore) FindByDeviceID(deviceID string) (*UserProfile, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	if deviceID == "" {
+		return nil, errors.New("device_id is empty")
+	}
+
+	var (
+		id           int64
+		username     string
+		coins        int
+		isFirstGame  bool
+		playedTime   float64
+		lastLogin    sql.NullString
+		inventory    string
+		backpackConf string
+		presets      string
+	)
+
+	err := s.db.QueryRow(
+		`SELECT id, username, coins, is_first_game, played_time, last_login_time, inventory, backpack_config, presets
+		FROM users WHERE device_id = ? LIMIT 1`, deviceID,
+	).Scan(&id, &username, &coins, &isFirstGame, &playedTime, &lastLogin, &inventory, &backpackConf, &presets)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("device not found")
+		}
+		return nil, err
+	}
+
+	nowStr := time.Now().Format("2006-01-02 15:04:05")
+	s.db.Exec(`UPDATE users SET last_login_time = ? WHERE id = ?`, nowStr, id)
+
+	var invArr []string
+	json.Unmarshal([]byte(inventory), &invArr)
+	var bpConfArr []BackpackItemInfo
+	json.Unmarshal([]byte(backpackConf), &bpConfArr)
+	var presetsArr [][]BackpackItemInfo
+	json.Unmarshal([]byte(presets), &presetsArr)
+
+	return &UserProfile{
+		ID:             id,
+		Name:           username,
+		Coins:          coins,
+		Inventory:      invArr,
+		BackpackConfig: bpConfArr,
+		Presets:        presetsArr,
+		IsFirstGame:    isFirstGame,
+		PlayedTime:     playedTime,
+		LastLoginTime:  nowStr,
+	}, nil
 }
 
 func (s *SQLiteStore) Close() error {

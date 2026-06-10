@@ -226,13 +226,18 @@ func _process(_delta: float) -> void:
 	elif state == WebSocketPeer.STATE_CLOSED:
 		is_connected_to_host = false
 		
-		# 正常对局进行中突发断线，不重置状态，切换到 RECONNECTING 并开启指数退避重试
+		# 只在正在对局中时自动重连（大厅/登录页断线无需重连）
 		if connection_state == ConnectionState.CONNECTED or connection_state == ConnectionState.RESUMING:
-			connection_state = ConnectionState.RECONNECTING
-			recovery_state = ConnectionRecoveryState.LOST # [NEW] 状态机同步切为 LOST
-			net_warn("Socket connection lost! Initiating seamless reconnect backoff sequence...")
-			reconnect_controller.start_reconnecting()
-			connection_closed.emit()
+			if current_room != "":
+				connection_state = ConnectionState.RECONNECTING
+				recovery_state = ConnectionRecoveryState.LOST
+				net_warn("Socket connection lost during game! Starting reconnect...")
+				reconnect_controller.start_reconnecting()
+				connection_closed.emit()
+			else:
+				net_warn("Socket disconnected outside of game, resetting state.")
+				reset_state()
+				connection_closed.emit()
 		
 		# 已经是重连过程中，且某次连接尝试失败回落到 CLOSED 时
 		elif connection_state == ConnectionState.RECONNECTING:
@@ -342,15 +347,15 @@ func _handle_data_packet(data: PackedByteArray) -> void:
 
 func _dispatch_route_message(route: String, body: Variant) -> void:
 	match route:
-		"User.Auth":
+		"User.Auth", "User.GuestLogin":
 			my_id = clean_id(body.get("id", ""))
 			player_name = body.get("name", "")
-			
+
 			# 同步至全局唯一 User 会话单例中，完成登录状态认证
 			var user_node = get_node_or_null("/root/User")
 			if user_node:
 				user_node.call("set_authenticated_user", body)
-				
+
 			if body.has("data"):
 				profile_loaded.emit(body.get("data", {}))
 		"Room.Join", "Room.Create":
@@ -662,6 +667,50 @@ func auth(username: String, password: String = "") -> void:
 	player_name = username
 	request("User.Auth", {"username": username, "password": password})
 
+## 游客登录：发送设备UUID，服务端按设备ID查找或创建游客账号
+func guest_login() -> void:
+	var device_id = _get_device_id()
+	net_log("Sending guest login request with device_id: " + device_id)
+	request("User.GuestLogin", {"device_id": device_id})
+
+const DEVICE_ID_FILE = "user://device_id.txt"
+
+func _get_device_id() -> String:
+	if FileAccess.file_exists(DEVICE_ID_FILE):
+		var f = FileAccess.open(DEVICE_ID_FILE, FileAccess.READ)
+		if f:
+			var saved = f.get_as_text().strip_edges()
+			if saved.length() > 0:
+				return saved
+
+	var uuid = _generate_uuid()
+	var f2 = FileAccess.open(DEVICE_ID_FILE, FileAccess.WRITE)
+	if f2:
+		f2.store_string(uuid)
+	return uuid
+
+func _generate_uuid() -> String:
+	if OS.has_feature("web"):
+		var js_uuid = JavaScriptBridge.eval("""
+			if (window.crypto && window.crypto.randomUUID) {
+				return window.crypto.randomUUID();
+			}
+			return '';
+		""", true)
+		if js_uuid is String and js_uuid.length() > 0:
+			return js_uuid
+	var hex = "0123456789abcdef"
+	var uuid = ""
+	for i in range(36):
+		if i == 8 or i == 13 or i == 18 or i == 23:
+			uuid += "-"
+		elif i == 14:
+			uuid += "4"
+		elif i == 19:
+			uuid += hex[randi() % 4 + 8]
+		else:
+			uuid += hex[randi() % 16]
+	return uuid
 func join_room(room_id: String) -> void:
 	request("Room.Join", {"room_id": room_id})
 
@@ -728,7 +777,7 @@ func fetch_profile() -> void:
 
 # [HOST AUTHORITY] Host 修改地图配置时调用，向服务端发起 Room.UpdateMapConfig 请求
 # 服务端会进行 HostUID 校验，只有真正的房主请求才会被接受
-func update_map_config(map_type: String = "", shape_type: String = "", map_size: String = "", seed: int = 0) -> void:
+func update_map_config(map_type: String = "", shape_type: String = "", map_size: String = "", map_seed: int = 0) -> void:
 	if not is_host:
 		net_warn("update_map_config called but is_host=false. Blocked client-side.")
 		return
@@ -736,7 +785,7 @@ func update_map_config(map_type: String = "", shape_type: String = "", map_size:
 	if map_type != "": payload["map_type"] = map_type
 	if shape_type != "": payload["shape_type"] = shape_type
 	if map_size != "": payload["map_size"] = map_size
-	if seed != 0: payload["seed"] = seed
+	if map_seed != 0: payload["seed"] = map_seed
 	if payload.is_empty(): return
 	request("Room.UpdateMapConfig", payload)
 	net_log("Host sent UpdateMapConfig: %s" % str(payload))

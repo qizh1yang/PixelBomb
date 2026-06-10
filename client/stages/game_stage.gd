@@ -157,12 +157,9 @@ func startCountdown() -> void:
 	countdownLabel.hide()
 	countdownLabel.modulate.a = 1.0
 	
-	if TutorialManager:
+	if TutorialManager and TutorialManager.force_tutorial:
 		TutorialManager.show_tutorial("controls", "上下左右键控制方向，空格键释放炸弹", -1.0, "res://assets/guide/方向键_chroma.webp", -160.0)
-		
-		# ── [NEW] 新手教程模式：在玩家身旁自动刷新一个宝箱 ──
-		if TutorialManager.force_tutorial:
-			_spawn_tutorial_chest_delayed()
+		_spawn_tutorial_chest_delayed()
 
 func _process(delta: float) -> void:
 	_updateDebugInfo()
@@ -227,7 +224,7 @@ func show_evac_zone() -> void:
 
 		print("[STAGE] 撤离点已创建在地图格子: %s, 局部坐标: %s" % [centerCell, marker.position])
 		
-		if TutorialManager:
+		if TutorialManager and TutorialManager.force_tutorial:
 			TutorialManager.show_tutorial("evac_zone", "到撤离区域按E能够成功撤离", -1.0, "", 200.0)
 	else:
 		print("[STAGE] 错误：无法获取 wall_layer，撤离点创建失败")

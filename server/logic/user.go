@@ -143,13 +143,12 @@ func (c *UserComponent) Auth(s *session.Session, msg *AuthRequest) error {
 		if oldSession.ID() != s.ID() {
 			log.Printf("[Auth] Duplicate login detected for UID=%d (old SessionID=%d, new SessionID=%d), kicking old client...",
 				profile.ID, oldSession.ID(), s.ID())
-			// 先尝试推送踢出通知给旧客户端
+			// 先推送踢出通知给旧客户端，等待足够时间确保写出
 			_ = oldSession.Push("onKicked", map[string]interface{}{
 				"reason": "duplicate_login",
 				"message": "您的账号已在其他设备登录",
 			})
-			// 给推送消息一点时间写出，然后关闭旧连接
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(200 * time.Millisecond)
 			oldSession.Close()
 			delete(c.uidToSession, profile.ID)
 			log.Printf("[Auth] Old session (UID=%d, SessionID=%d) kicked successfully", profile.ID, oldSession.ID())
@@ -206,7 +205,85 @@ func (c *UserComponent) Register(s *session.Session, msg *RegisterRequest) error
 	})
 }
 
-// GetProfile handles profile fetching
+// ── 游客登录（设备ID绑定）──
+
+type GuestLoginRequest struct {
+	DeviceID string `json:"device_id"`
+}
+
+// GuestLogin 设备ID游客登录：已有设备ID则返回原账号，否则创建新游客
+// Route: User.GuestLogin
+func (c *UserComponent) GuestLogin(s *session.Session, msg *GuestLoginRequest) error {
+	deviceID := msg.DeviceID
+	if deviceID == "" {
+		return s.Response(map[string]interface{}{
+			"type":    "ERROR",
+			"message": "设备ID为空",
+		})
+	}
+
+	var profile *UserProfile
+	var err error
+
+	// 1. 先查设备ID是否已有游客账号
+	profile, err = DB.FindByDeviceID(deviceID)
+	if err != nil {
+		// 2. 不存在则创建新游客账号
+		nickname, regErr := DB.RegisterGuest(deviceID)
+		if regErr != nil {
+			log.Printf("[GuestLogin] Failed to create guest: %v", regErr)
+			return s.Response(map[string]interface{}{
+				"type":    "ERROR",
+				"message": "游客登录失败，请重试",
+			})
+		}
+		// 注册成功后获取完整档案
+		profile, err = DB.FindByDeviceID(deviceID)
+		if err != nil {
+			return s.Response(map[string]interface{}{
+				"type":    "ERROR",
+				"message": "游客登录失败",
+			})
+		}
+		log.Printf("[GuestLogin] New guest created: %s (device=%s, UID=%d)", nickname, deviceID, profile.ID)
+	} else {
+		log.Printf("[GuestLogin] Returning guest: %s (device=%s, UID=%d)", profile.Name, deviceID, profile.ID)
+	}
+
+	// 3. 绑定会话 + 防多开
+	c.lock.Lock()
+	if oldSession, exists := c.uidToSession[profile.ID]; exists {
+		if oldSession.ID() != s.ID() {
+			log.Printf("[GuestLogin] Duplicate detected for UID=%d (old sid=%d, new sid=%d), kicking old client",
+				profile.ID, oldSession.ID(), s.ID())
+			_ = oldSession.Push("onKicked", map[string]interface{}{
+				"reason":  "duplicate_login",
+				"message": "您的账号已在其他设备登录",
+			})
+			time.Sleep(50 * time.Millisecond)
+			oldSession.Close()
+			delete(c.uidToSession, profile.ID)
+		}
+	}
+	err = s.Bind(profile.ID)
+	if err != nil {
+		c.lock.Unlock()
+		return err
+	}
+	c.uidToSession[profile.ID] = s
+	c.lock.Unlock()
+
+	s.Set("name", profile.Name)
+
+	return s.Response(AuthResponse{
+		ID:    profile.ID,
+		Name:  profile.Name,
+		Coins: profile.Coins,
+		Data:  profile,
+	})
+}
+
+// ── 用户信息 ──
 // Route: User.GetProfile
 func (c *UserComponent) GetProfile(s *session.Session, msg []byte) error {
 	uid := s.UID()

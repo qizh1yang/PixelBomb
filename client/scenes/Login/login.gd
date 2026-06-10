@@ -1,104 +1,256 @@
 # 登录与注册场景逻辑
-# 处理玩家账户登录、注册以及动态背景效果
 extends Control
 
-# ── 节点引用 ──
+# ── 场景节点（login.tscn）──
 @onready var usernameInput: LineEdit = %UsernameInput
 @onready var passwordInput: LineEdit = %PasswordInput
 @onready var errorLabel: Label = %ErrorLabel
 @onready var loginBtn: TextureButton = %LoginBtn
-@onready var registerBtn: Label = %RegisterBtn
+@onready var regBtn: Button = %RegBtn
+@onready var guestBtn: Button = %GuestBtn
 @onready var loadingOverlay: Control = %LoadingOverlay
-@onready var bgParticles: CPUParticles2D = %BGParticles
 
 const ACCOUNTS_FILE = "user://accounts.json"
 var _local_accounts: Dictionary = {}
+var _popup: Control = null
+
+# ══════════════════════════════════════════════════════
 
 func _ready() -> void:
 	errorLabel.text = ""
 	loadingOverlay.hide()
 	_load_local_accounts()
-	
-	# 自动填充最后一个账号 (如果有)
 	_autofill_last_account()
-	
-	# 连接网络信号
+
+	# loginBtn.pressed 已在 login.tscn 中连接，此处不需要重复
+	regBtn.pressed.connect(_on_register_btn_pressed)
+	guestBtn.pressed.connect(_on_guest_btn_pressed)
+
 	var net = NetworkManager
 	net.connected_to_server.connect(_on_connection_succeeded)
 	net.connection_closed.connect(_on_connection_failed)
 	net.message_received.connect(_on_message_received)
 	net.kicked.connect(_on_kicked)
 
+# ══════════════════════════════════════════════════════
+#  本地账号
+# ══════════════════════════════════════════════════════
+
 func _load_local_accounts() -> void:
 	if FileAccess.file_exists(ACCOUNTS_FILE):
-		var file = FileAccess.open(ACCOUNTS_FILE, FileAccess.READ)
-		var content = file.get_as_text()
-		var json = JSON.parse_string(content)
-		if json is Dictionary:
-			_local_accounts = json
-			print("[LOGIN] Loaded %d local accounts" % _local_accounts.size())
+		var f = FileAccess.open(ACCOUNTS_FILE, FileAccess.READ)
+		var json = JSON.parse_string(f.get_as_text())
+		if json is Dictionary: _local_accounts = json
 
 func _save_local_account(uname: String, pwd: String) -> void:
 	_local_accounts[uname] = pwd
-	var file = FileAccess.open(ACCOUNTS_FILE, FileAccess.WRITE)
-	file.store_string(JSON.stringify(_local_accounts))
-	print("[LOGIN] Account %s saved locally" % uname)
+	var f = FileAccess.open(ACCOUNTS_FILE, FileAccess.WRITE)
+	f.store_string(JSON.stringify(_local_accounts))
 
 func _autofill_last_account() -> void:
 	if not _local_accounts.is_empty():
-		# 简单取字典中最后一个
-		var last_uname = _local_accounts.keys()[-1]
-		usernameInput.text = last_uname
-		passwordInput.text = _local_accounts[last_uname]
+		var last = _local_accounts.keys()[-1]
+		usernameInput.text = last
+		passwordInput.text = _local_accounts[last]
+
+# ══════════════════════════════════════════════════════
+#  登录
+# ══════════════════════════════════════════════════════
 
 func _on_login_pressed() -> void:
 	var uname = usernameInput.text.strip_edges()
 	var pwd = passwordInput.text.strip_edges()
-	
 	if uname == "" or pwd == "":
-		_show_error("用户名和密码不能为空")
-		return
-	
-	# 本地校验 (可选，如果纯离线/测试)
-	if _local_accounts.has(uname) and _local_accounts[uname] != pwd:
-		_show_error("本地凭据不匹配")
-		# 仍然可以尝试向服务端验证，这里仅作提示
-	
+		_show_error("用户名和密码不能为空"); return
+
+	_save_local_account(uname, pwd)
 	_show_loading(true)
 	NetworkManager.player_name = uname
-	
 	if not NetworkManager.is_connected_to_host:
 		NetworkManager.connect_to_server()
-		var success = await _wait_for_connection(10.0)
-		if not success: return
-	
+		if not await _wait_for_connection(10.0): return
 	NetworkManager.auth(uname, pwd)
 
-func _on_register_pressed() -> void:
-	var uname = usernameInput.text.strip_edges()
-	var pwd = passwordInput.text.strip_edges()
-	
-	if uname.length() < 3:
-		_show_error("用户名至少需要3个字符")
-		return
-	
-	_save_local_account(uname, pwd) # 先保存到本地
-	
-	_show_loading(true)
-	# 注册逻辑：先连接，再发送 REGISTER 类型消息
-	if not NetworkManager.is_connected_to_host:
-		NetworkManager.connect_to_server()
-		var success = await _wait_for_connection(10.0)
-		if not success: return
-	
-	NetworkManager.request("User.Register", {
-		"username": uname, 
-		"password": pwd
-	})
+# ══════════════════════════════════════════════════════
+#  注册弹窗
+# ══════════════════════════════════════════════════════
 
-func _on_connection_succeeded() -> void:
-	# 连接成功，等待发送 Auth 请求 (已在 _on_login_pressed 中 await 处理)
-	pass
+func _on_register_btn_pressed() -> void:
+	_close_popup()
+	_popup = _make_register_popup()
+	add_child(_popup)
+
+func _make_register_popup() -> Control:
+	var ctrl = Control.new()
+	ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
+
+	var mask = ColorRect.new()
+	mask.set_anchors_preset(Control.PRESET_FULL_RECT)
+	mask.color = Color(0, 0, 0, 0.5)
+	ctrl.add_child(mask)
+	mask.gui_input.connect(func(e): if e is InputEventMouseButton and e.pressed: _close_popup())
+
+	var panel = Panel.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.size = Vector2(340, 320)
+	ctrl.add_child(panel)
+
+	var title = Label.new()
+	title.text = "注册冒险者账号"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", Color("#F5A623"))
+	title.position = Vector2(20, 14)
+	title.size = Vector2(300, 28)
+	panel.add_child(title)
+
+	var user_in = LineEdit.new()
+	user_in.placeholder_text = "用户名（至少3个字符）"
+	user_in.position = Vector2(20, 52)
+	user_in.size = Vector2(300, 36)
+	panel.add_child(user_in)
+
+	var pass_in = LineEdit.new()
+	pass_in.placeholder_text = "密码（至少6个字符）"
+	pass_in.secret = true
+	pass_in.position = Vector2(20, 96)
+	pass_in.size = Vector2(300, 36)
+	panel.add_child(pass_in)
+
+	var conf_in = LineEdit.new()
+	conf_in.placeholder_text = "确认密码"
+	conf_in.secret = true
+	conf_in.position = Vector2(20, 140)
+	conf_in.size = Vector2(300, 36)
+	panel.add_child(conf_in)
+
+	var err_lbl = Label.new()
+	err_lbl.position = Vector2(20, 184)
+	err_lbl.size = Vector2(300, 20)
+	err_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	err_lbl.add_theme_color_override("font_color", Color("#E83A3A"))
+	panel.add_child(err_lbl)
+
+	var submit = Button.new()
+	submit.text = "注 册"
+	submit.position = Vector2(20, 212)
+	submit.size = Vector2(300, 36)
+	panel.add_child(submit)
+
+	var cancel = Button.new()
+	cancel.text = "取 消"
+	cancel.position = Vector2(20, 256)
+	cancel.size = Vector2(300, 36)
+	panel.add_child(cancel)
+
+	submit.pressed.connect(func():
+		var u = user_in.text.strip_edges()
+		var p = pass_in.text
+		var p2 = conf_in.text
+		if u.length() < 3: err_lbl.text = "用户名至少需要3个字符"; return
+		if p.length() < 6: err_lbl.text = "密码至少需要6个字符"; return
+		if p != p2: err_lbl.text = "两次密码输入不一致"; return
+
+		submit.disabled = true; submit.text = "注册中..."; err_lbl.text = ""
+		if not NetworkManager.is_connected_to_host:
+			NetworkManager.connect_to_server()
+
+		var done = false; var ok = false; var msg = ""
+		var on_msg = func(route, json):
+			if route == "User.Register":
+				done = true
+				ok = (json.get("type") == "REGISTER_SUCCESS")
+				if not ok: msg = json.get("message", "注册失败")
+
+		NetworkManager.message_received.connect(on_msg)
+		NetworkManager.request("User.Register", {"username": u, "password": p})
+		await get_tree().create_timer(8.0).timeout
+		NetworkManager.message_received.disconnect(on_msg)
+
+		if ok:
+			_close_popup()
+			usernameInput.text = u; passwordInput.text = p
+			_show_error("注册成功，请点击登录")
+			errorLabel.modulate = Color("#4ADE80")
+		else:
+			err_lbl.text = msg if msg != "" else "请求超时"
+			submit.disabled = false; submit.text = "注 册"
+	)
+
+	cancel.pressed.connect(_close_popup)
+	return ctrl
+
+# ══════════════════════════════════════════════════════
+#  游客弹窗
+# ══════════════════════════════════════════════════════
+
+func _on_guest_btn_pressed() -> void:
+	_close_popup()
+	_popup = _make_guest_popup()
+	add_child(_popup)
+
+func _make_guest_popup() -> Control:
+	var ctrl = Control.new()
+	ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
+
+	var mask = ColorRect.new()
+	mask.set_anchors_preset(Control.PRESET_FULL_RECT)
+	mask.color = Color(0, 0, 0, 0.5)
+	ctrl.add_child(mask)
+	mask.gui_input.connect(func(e): if e is InputEventMouseButton and e.pressed: _close_popup())
+
+	var panel = Panel.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.size = Vector2(300, 180)
+	ctrl.add_child(panel)
+
+	var title = Label.new()
+	title.text = "游客模式"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", Color("#F5A623"))
+	title.position = Vector2(20, 14)
+	title.size = Vector2(260, 28)
+	panel.add_child(title)
+
+	var desc = Label.new()
+	desc.text = "将以临时冒险者身份进入游戏。\n游客账号绑定当前设备，\n换设备后无法找回。"
+	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	desc.add_theme_color_override("font_color", Color("#8B9DC3"))
+	desc.position = Vector2(20, 46)
+	desc.size = Vector2(260, 54)
+	panel.add_child(desc)
+
+	var confirm = Button.new()
+	confirm.text = "游客进入"
+	confirm.position = Vector2(20, 120)
+	confirm.size = Vector2(124, 36)
+	panel.add_child(confirm)
+
+	var cancel = Button.new()
+	cancel.text = "取消"
+	cancel.position = Vector2(156, 120)
+	cancel.size = Vector2(124, 36)
+	panel.add_child(cancel)
+
+	confirm.pressed.connect(func():
+		_close_popup()
+		_show_loading(true)
+		if not NetworkManager.is_connected_to_host:
+			NetworkManager.connect_to_server()
+			if not await _wait_for_connection(10.0): return
+		NetworkManager.guest_login()
+	)
+	cancel.pressed.connect(_close_popup)
+	return ctrl
+
+# ══════════════════════════════════════════════════════
+#  通用
+# ══════════════════════════════════════════════════════
+
+func _close_popup() -> void:
+	if _popup: _popup.queue_free()
+	_popup = null
+
+func _on_connection_succeeded() -> void: pass
 
 func _on_connection_failed() -> void:
 	_show_loading(false)
@@ -108,74 +260,44 @@ func _on_message_received(route: String, json: Dictionary) -> void:
 	match route:
 		"User.Auth":
 			_show_loading(false)
-			var type = json.get("type", "")
-			if type == "ERROR":
+			if json.get("type") == "ERROR":
 				_show_error(json.get("message", "登录失败"))
 			else:
-				print("[LOGIN] Auth success, entering lobby...")
 				UIManager.change_scene("lobby")
-		"User.Register":
+		"User.GuestLogin":
 			_show_loading(false)
-			var type = json.get("type", "")
-			if type == "REGISTER_SUCCESS":
-				_show_error("注册成功，请点击登录")
-				errorLabel.modulate = Color("#4ADE80")
-			elif type == "ERROR":
-				_show_error(json.get("message", "注册失败"))
+			if json.get("type") == "ERROR":
+				_show_error(json.get("message", "游客登录失败"))
+			else:
+				UIManager.change_scene("lobby")
 
 func _on_kicked(reason: String, message: String) -> void:
-	print("[LOGIN] Kicked by server: %s — %s" % [reason, message])
 	_show_loading(false)
 	_show_error(message)
 
 func _show_error(msg: String) -> void:
 	errorLabel.text = msg
 	errorLabel.modulate = Color("#E83A3A")
-	
-	# 简单的抖动动画
-	var tween = create_tween()
-	tween.tween_property(errorLabel, "position:x", errorLabel.position.x + 5, 0.05)
-	tween.tween_property(errorLabel, "position:x", errorLabel.position.x - 5, 0.1)
-	tween.tween_property(errorLabel, "position:x", errorLabel.position.x, 0.05)
+	var t = create_tween()
+	t.tween_property(errorLabel, "position:x", errorLabel.position.x + 5, 0.05)
+	t.tween_property(errorLabel, "position:x", errorLabel.position.x - 5, 0.1)
+	t.tween_property(errorLabel, "position:x", errorLabel.position.x, 0.05)
 
 func _show_loading(active: bool) -> void:
 	loadingOverlay.visible = active
 	loginBtn.disabled = active
 
-# ── 连接助手 ──
-
-## 等待连接成功，带超时功能
 func _wait_for_connection(timeout: float) -> bool:
-	if NetworkManager.is_connected_to_host:
-		return true
-	
+	if NetworkManager.is_connected_to_host: return true
 	var timer = get_tree().create_timer(timeout)
-	var connected = [false] # 使用数组作为引用
-	var timed_out = [false]
-	
-	var on_success = func(): connected[0] = true
-	var on_timeout = func(): timed_out[0] = true
-	
-	NetworkManager.connected_to_server.connect(on_success, CONNECT_ONE_SHOT)
-	timer.timeout.connect(on_timeout, CONNECT_ONE_SHOT)
-	
-	# 等待其中之一发生
-	while not connected[0] and not timed_out[0]:
+	var ok = [false]; var to = [false]
+	NetworkManager.connected_to_server.connect(func(): ok[0] = true, CONNECT_ONE_SHOT)
+	timer.timeout.connect(func(): to[0] = true, CONNECT_ONE_SHOT)
+	while not ok[0] and not to[0]:
 		await get_tree().process_frame
-	
-	if timed_out[0] and not connected[0]:
-		# 清理信号连接
-		if NetworkManager.connected_to_server.is_connected(on_success):
-			NetworkManager.connected_to_server.disconnect(on_success)
-		
+	if to[0] and not ok[0]:
 		NetworkManager.disconnect_from_server()
 		_show_error("连接服务器超时 (10秒)")
 		_show_loading(false)
 		return false
-	
-	# 成功连接，清理定时器信号 (如果还没触发)
-	if connected[0] and timer.timeout.is_connected(on_timeout):
-		# timer 是 SceneTreeTimer, 不支持手动断开连接，但它是 ONE_SHOT 且我们已经跳出循环
-		pass
-		
 	return true
