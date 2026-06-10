@@ -19,6 +19,10 @@ echo "[2/3] Stopping services + rebuilding..."
 docker-compose down
 docker-compose up --build -d
 
+# 修复数据库权限（Docker 重建后权限可能被重置）
+chmod -R 777 /root/PixelBomb/server/storage/
+docker restart pb-game-server
+
 echo ""
 echo "[3/3] Checking status..."
 sleep 3
