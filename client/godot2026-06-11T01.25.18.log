@@ -1,0 +1,176 @@
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+OpenGL API 3.3.0 - Build 27.20.100.9415 - Compatibility - Using Device: Intel - Intel(R) Iris(R) Xe Graphics
+
+WARNING: The local variable "scaled_cell" is declared but never used in the block. If this is intended, prefix it with an underscore: "_scaled_cell".
+   at: GDScript::reload (res://prefabs/Backpack/sub/loot_grid.gd:183)
+WARNING: The parameter "is_special" is never used in the function "canPlaceItem()". If this is intended, prefix it with an underscore: "_is_special".
+   at: GDScript::reload (res://prefabs/Backpack/sub/loot_grid.gd:221)
+WARNING: The local function parameter "map_seed" is shadowing an already-declared variable at line 84 in the current class.
+   at: GDScript::reload (res://utils/network/network_manager.gd:780)
+WARNING: The parameter "item_resources" is never used in the function "collect_items_from_backpack()". If this is intended, prefix it with an underscore: "_item_resources".
+   at: GDScript::reload (res://autoloads/player_data.gd:132)
+WARNING: The parameter "winner_name" is never used in the function "show_settlement()". If this is intended, prefix it with an underscore: "_winner_name".
+   at: GDScript::reload (res://autoloads/ui_manager.gd:95)
+WARNING: The variable "tween" is declared below in the parent block.
+   at: GDScript::reload (res://stages/game_stage.gd:149)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/HUD/hud.gd:78)
+WARNING: The variable "tween" is declared below in the parent block.
+   at: GDScript::reload (res://prefabs/HUD/hud.gd:109)
+WARNING: The parameter "bombs" is never used in the function "updateStats()". If this is intended, prefix it with an underscore: "_bombs".
+   at: GDScript::reload (res://prefabs/HUD/hud.gd:120)
+WARNING: The parameter "maxBombs" is never used in the function "updateStats()". If this is intended, prefix it with an underscore: "_maxBombs".
+   at: GDScript::reload (res://prefabs/HUD/hud.gd:120)
+WARNING: The parameter "speed" is never used in the function "updateStats()". If this is intended, prefix it with an underscore: "_speed".
+   at: GDScript::reload (res://prefabs/HUD/hud.gd:120)
+WARNING: The parameter "maxSpeed" is never used in the function "updateStats()". If this is intended, prefix it with an underscore: "_maxSpeed".
+   at: GDScript::reload (res://prefabs/HUD/hud.gd:120)
+WARNING: The parameter "shields" is never used in the function "updateStats()". If this is intended, prefix it with an underscore: "_shields".
+   at: GDScript::reload (res://prefabs/HUD/hud.gd:120)
+WARNING: The parameter "maxShields" is never used in the function "updateStats()". If this is intended, prefix it with an underscore: "_maxShields".
+   at: GDScript::reload (res://prefabs/HUD/hud.gd:120)
+WARNING: The parameter "current_r" is never used in the function "updateStats()". If this is intended, prefix it with an underscore: "_current_r".
+   at: GDScript::reload (res://prefabs/HUD/hud.gd:120)
+WARNING: The parameter "base_limit" is never used in the function "updateStats()". If this is intended, prefix it with an underscore: "_base_limit".
+   at: GDScript::reload (res://prefabs/HUD/hud.gd:120)
+WARNING: The parameter "shape" is never used in the function "_check_grid_hit()". If this is intended, prefix it with an underscore: "_shape".
+   at: GDScript::reload (res://prefabs/Backpack/backpack.gd:463)
+WARNING: The "for" iterator variable "char" has the same name as a built-in function.
+   at: GDScript::reload (res://autoloads/character_registry.gd:46)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://autoloads/game_mode.gd:297)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://autoloads/game_mode.gd:298)
+WARNING: The variable "p" is declared below in the parent block.
+   at: GDScript::reload (res://autoloads/game_mode.gd:338)
+WARNING: The local variable "tick" is shadowing an already-declared function at line 320 in the current class.
+   at: GDScript::reload (res://autoloads/game_mode.gd:391)
+WARNING: The local variable "type" is declared but never used in the block. If this is intended, prefix it with an underscore: "_type".
+   at: GDScript::reload (res://autoloads/game_mode.gd:579)
+WARNING: The local "for" iterator variable "name" is shadowing an already-declared property in the base class "Node".
+   at: GDScript::reload (res://autoloads/mcp_interaction_server.gd:2549)
+WARNING: The local "for" iterator variable "name" is shadowing an already-declared property in the base class "Node".
+   at: GDScript::reload (res://autoloads/mcp_interaction_server.gd:2556)
+WARNING: The local "for" iterator variable "name" is shadowing an already-declared property in the base class "Node".
+   at: GDScript::reload (res://autoloads/mcp_interaction_server.gd:2562)
+WARNING: Integer used when an enum value is expected. If this is intended, cast the integer to the enum type using the "as" keyword.
+   at: GDScript::reload (res://autoloads/mcp_interaction_server.gd:2905)
+WARNING: Integer used when an enum value is expected. If this is intended, cast the integer to the enum type using the "as" keyword.
+   at: GDScript::reload (res://autoloads/mcp_interaction_server.gd:3062)
+WARNING: The parameter "event" is never used in the function "_input()". If this is intended, prefix it with an underscore: "_event".
+   at: GDScript::reload (res://autoloads/input_manager.gd:11)
+WARNING: Reassigning lambda capture does not modify the outer local variable "done".
+   at: GDScript::reload (res://scenes/Login/login.gd:175)
+WARNING: Reassigning lambda capture does not modify the outer local variable "ok".
+   at: GDScript::reload (res://scenes/Login/login.gd:176)
+WARNING: Reassigning lambda capture does not modify the outer local variable "msg".
+   at: GDScript::reload (res://scenes/Login/login.gd:177)
+WARNING: The parameter "reason" is never used in the function "_on_kicked()". If this is intended, prefix it with an underscore: "_reason".
+   at: GDScript::reload (res://scenes/Login/login.gd:292)
+[NANO-NET] ReconnectController initialized successfully.
+WARNING: The parameter "body" is never used in the function "<anonymous lambda>()". If this is intended, prefix it with an underscore: "_body".
+   at: GDScript::reload (res://utils/network/session_recovery.gd:132)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://utils/network/network_manager.gd:135)
+[NANO-NET] SessionRecovery coordinator initialized successfully.
+[NANO-NET] Nano NetworkManager ready.
+[CharacterRegistry] Registered 4 characters
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/map_classic/wall_layer.gd:92)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/map_classic/wall_layer.gd:93)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+[MapRegistry]   + CLASSIC -> 碎空岛·原野
+WARNING: The local variable "hex_h" is declared but never used in the block. If this is intended, prefix it with an underscore: "_hex_h".
+   at: GDScript::reload (res://prefabs/map/core/map_shape_generator.gd:42)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: The variable "test_margin" is declared below in the parent block.
+   at: GDScript::reload (res://prefabs/map/core/spawn_point_solver.gd:77)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: The local variable "m1" is declared but never used in the block. If this is intended, prefix it with an underscore: "_m1".
+   at: GDScript::reload (res://prefabs/map/core/spawn_point_solver.gd:84)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/core/spawn_point_solver.gd:198)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/core/spawn_point_solver.gd:199)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/core/spawn_extraction_validator.gd:86)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/core/spawn_extraction_validator.gd:86)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/core/map_generator_core.gd:197)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/core/map_generator_core.gd:220)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/core/map_generator_core.gd:220)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/core/map_generator_core.gd:240)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/core/map_generator_core.gd:241)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/core/map_generator_core.gd:300)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: Integer division. Decimal part will be discarded.
+   at: GDScript::reload (res://prefabs/map/core/map_generator_core.gd:301)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: res://prefabs/map/procedural_map/procedural_map.tscn:5 - ext_resource, invalid UID: uid://c410313f8qlyr - using text path instead: res://prefabs/map/map_winter/res/All Tiles Free Ver.png
+   at: load (scene/resources/resource_format_text.cpp:444)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+WARNING: res://prefabs/map/procedural_map/procedural_map.tscn:6 - ext_resource, invalid UID: uid://g1m250w7l15w - using text path instead: res://prefabs/map/map_winter/res/TilesetFloor.png
+   at: load (scene/resources/resource_format_text.cpp:444)
+   GDScript backtrace (most recent call first):
+       [0] _scan_maps (res://autoloads/map_registry.gd:28)
+       [1] _ready (res://autoloads/map_registry.gd:17)
+[MapRegistry]   + PROCEDURAL -> 随机地图
+[MapRegistry]   + WINTER -> 碎空岛·极寒
+[MapRegistry] Registered 3 maps: ["CLASSIC", "PROCEDURAL", "WINTER"]
+[FONT] Global Theme created and fallback_font set directly to custom font: res://assets/fonts/lmm.ttf
+McpInteractionServer: Listening on 127.0.0.1:9090
+[NANO-NET] Application focus out. (Desktop platform, keeping connection active)
+[NANO-NET] Application focus in. Checking connection stability...
+[NANO-NET] Application focus out. (Desktop platform, keeping connection active)

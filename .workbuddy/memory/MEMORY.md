@@ -82,5 +82,9 @@
 - `item_card.setup(res: BackpackItemResource, path: String)`：卡片初始化签名
 - 售出价值 = 基础属性加成总值 × 稀有度系数（RARE×1/EPIC×2/DIAMOND×4）
 
+## 工具与开发规范约定
+- **客户端修改规范**: 每次修改客户端（Godot）内容时，**都必须调用 godot-mcp 工具**（例如用于解析场景文件 `read_scene`、修改场景属性 `modify_scene_node`、运行时调试 `game_eval` 等），以保证代码修改与 Godot 编辑器的引擎数据和场景文件结构完全同步一致。
+
 ## 重要修复记录（2026-05-06）
 见每日日志
+

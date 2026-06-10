@@ -168,29 +168,33 @@ func _make_register_popup() -> Control:
 		submit.disabled = true; submit.text = "注册中..."; err_lbl.text = ""
 		if not NetworkManager.is_connected_to_host:
 			NetworkManager.connect_to_server()
+			if not await _wait_for_connection(10.0):
+				err_lbl.text = "连接服务器超时"
+				submit.disabled = false; submit.text = "注 册"
+				return
 
-		var done = false; var ok = false; var msg = ""
+		var state = {"done": false, "ok": false, "msg": ""}
 		var on_msg = func(route, json):
 			if route == "User.Register":
-				done = true
-				ok = (json.get("type") == "REGISTER_SUCCESS")
-				if not ok: msg = json.get("message", "注册失败")
+				state["done"] = true
+				state["ok"] = (json.get("type") == "REGISTER_SUCCESS")
+				if not state["ok"]: state["msg"] = json.get("message", "注册失败")
 
 		NetworkManager.message_received.connect(on_msg)
 		NetworkManager.request("User.Register", {"username": u, "password": p})
 		var elapsed: float = 0.0
-		while not done and elapsed < 8.0:
+		while not state["done"] and elapsed < 8.0:
 			await get_tree().process_frame
 			elapsed += get_process_delta_time()
 		NetworkManager.message_received.disconnect(on_msg)
 
-		if ok:
+		if state["ok"]:
 			_close_popup()
 			usernameInput.text = u; passwordInput.text = p
 			_show_error("注册成功，请点击登录")
 			errorLabel.modulate = Color("#4ADE80")
 		else:
-			err_lbl.text = msg if msg != "" else "请求超时"
+			err_lbl.text = state["msg"] if state["msg"] != "" else "请求超时"
 			submit.disabled = false; submit.text = "注 册"
 	)
 
