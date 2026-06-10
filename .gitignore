@@ -39,3 +39,5 @@ ssl/
 *.key
 .env
 godot-mcp/
+server/pb-server-linux
+server/pixelbomb-server
