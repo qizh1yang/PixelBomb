@@ -11,7 +11,7 @@ echo "  PixelBomb Server Update"
 echo "========================================"
 
 echo "[1/3] Pulling latest code from GitHub..."
-git fetch origin main
+git fetch origin
 git reset --hard origin/main
 
 echo ""
