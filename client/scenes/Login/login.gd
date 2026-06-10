@@ -26,11 +26,26 @@ func _ready() -> void:
 	regBtn.pressed.connect(_on_register_btn_pressed)
 	guestBtn.pressed.connect(_on_guest_btn_pressed)
 
+	# 按钮样式：白色文字，hover 变橙色
+	_style_text_btn(regBtn, Color("#B0B0C0"), Color("#F5A623"))
+	_style_text_btn(guestBtn, Color("#B0B0C0"), Color("#F5A623"))
+
 	var net = NetworkManager
 	net.connected_to_server.connect(_on_connection_succeeded)
 	net.connection_closed.connect(_on_connection_failed)
 	net.message_received.connect(_on_message_received)
 	net.kicked.connect(_on_kicked)
+
+# ══════════════════════════════════════════════════════
+#  按钮工具
+# ══════════════════════════════════════════════════════
+
+func _style_text_btn(btn: Button, normal_color: Color, hover_color: Color) -> void:
+	btn.flat = true
+	btn.add_theme_color_override("font_color", normal_color)
+	btn.add_theme_color_override("font_hover_color", hover_color)
+	btn.add_theme_color_override("font_pressed_color", hover_color.darkened(0.2))
+	btn.add_theme_font_size_override("font_size", 14)
 
 # ══════════════════════════════════════════════════════
 #  本地账号
@@ -163,7 +178,10 @@ func _make_register_popup() -> Control:
 
 		NetworkManager.message_received.connect(on_msg)
 		NetworkManager.request("User.Register", {"username": u, "password": p})
-		await get_tree().create_timer(8.0).timeout
+		var elapsed: float = 0.0
+		while not done and elapsed < 8.0:
+			await get_tree().process_frame
+			elapsed += get_process_delta_time()
 		NetworkManager.message_received.disconnect(on_msg)
 
 		if ok:

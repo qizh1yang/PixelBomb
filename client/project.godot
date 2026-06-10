@@ -33,6 +33,8 @@ TutorialManager="*res://autoloads/tutorial_manager.gd"
 
 [debug]
 
+file_logging/enable_file_logging=true
+file_logging/log_path="res://godot.log"
 offline_mode=false
 
 [display]

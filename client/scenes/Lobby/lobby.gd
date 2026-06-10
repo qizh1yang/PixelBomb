@@ -98,9 +98,6 @@ func _on_join_room(room_id: String) -> void:
 
 func _on_refresh_pressed() -> void:
 	NetworkManager.request_room_list()
-	# 简单的旋转动画效果
-	var tween = create_tween()
-	tween.tween_property(refreshBtn, "rotation_degrees", 360, 0.5).from(0)
 
 func _on_create_pressed() -> void:
 	# 防御性清理：如果残留房间状态，先离开旧房间
